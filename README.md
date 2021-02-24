@@ -1,4 +1,4 @@
-# PredictStockusingRedditandTwitter
+# Relationship between SoMe and Stocks (Sentiment analysis)
 
 ## Research Question
 "Is there a relationship between the general sentiment in discussion about specific stocks on the social media platforms Reddit and Twitter, and the volatility of these stocks?"

@@ -10,4 +10,9 @@ library(RedditExtractoR)
 library(tidyverse)
 
 data <- get_reddit(subreddit = "wallstreetbets")
+
+data2 <- cars
+plot(data2$speed, data2$dist, col="red")
+reg <- lm(speed~., data2)
+summary(reg)
 ```

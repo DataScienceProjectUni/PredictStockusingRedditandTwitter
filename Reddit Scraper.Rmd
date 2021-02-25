@@ -1,0 +1,13 @@
+---
+title: "Scraping Reddit"
+output: html_notebook
+---
+
+# First try
+```{r}
+#install.packages("RedditExtractoR")
+library(RedditExtractoR)
+library(tidyverse)
+
+data <- get_reddit(subreddit = "wallstreetbets")
+```

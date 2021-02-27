@@ -1,0 +1,38 @@
+---
+title: "WSB - Sentiment - Sentiment Analysis"
+author: "Rune Rathmann"
+date: "10/2/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Source:**
+https://www.red-gate.com/simple-talk/sql/bi/text-mining-and-sentiment-analysis-with-r/
+
+**Data Load:**
+```{r}
+wsb_lines <- readLines(choose.files())
+# View(wsb_lines)
+```
+
+
+**Sentiment Analysis:**
+```{r}
+# install.packages("sentimentr")
+library(sentimentr)
+```
+
+```{r}
+sentences <- get_sentences(wsb_lines)
+sentiment <- sentiment_by(sentences)
+```
+
+
+
+
+
+
+

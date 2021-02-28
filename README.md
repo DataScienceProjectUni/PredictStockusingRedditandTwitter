@@ -16,6 +16,7 @@ We want to analyze whether there is a relationship between social media platform
 
 ### Step 1
 - choose/identify subreddits to identify most mentioned stocks in 
+- i.e. /r/SecurityAnalysis, /r/Finance, /r/WallStreetBets, /r/FinancialIndependence
 
 ### Step 2
 - scrape reddit comments from identified subreddits 

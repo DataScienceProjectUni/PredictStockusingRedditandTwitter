@@ -1,0 +1,51 @@
+---
+title: "WSB - Get Stock Prices"
+author: "Rune Rathmann"
+date: "28/2/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# install.packages('BatchGetSymbols')
+
+library(BatchGetSymbols)
+
+# set dates
+first.date <- Sys.Date() - 60
+last.date <- Sys.Date()
+freq.data <- 'daily'
+# set tickers
+tickers <- c('FB','MMM','PETR4.SA','abcdef')
+
+l.out <- BatchGetSymbols(tickers = tickers, 
+                         first.date = first.date,
+                         last.date = last.date, 
+                         freq.data = freq.data,
+                         cache.folder = file.path(tempdir(), 
+                                                  'BGS_Cache') ) # cache in tempdir()
+
+View(l.out)
+```
+
+
+```{r}
+library("QuantTools")
+```
+
+
+```{r}
+# install.packages("tidyverse")
+# install.packages("tidyquant")
+library(tidyverse)
+library(tidyquant)
+
+av_api_key("JS6L6NH86R1R2V9F")
+# Scaling is as simple as supplying multiple symbols
+c("FB", "MSFT") %>%
+    tq_get(get = "alphavantage", av_fun = "TIME_SERIES_INTRADAY", interval = "60min")
+```
+

@@ -23,12 +23,20 @@ We want to analyze whether there is a relationship between social media platform
 
 ### Step 3
 - scrape reddit and twitter for the identified stocks in the chosen time period
+  - use stock ticker and stock name
+
+#### Step 3.1
+- create hourly datasets for each of the 5 stocks 
+
+#### Step 3.2
+- get hourly financial data and classify if the stock goes up or down during a given hour
 
 ### Step 4
-- Perform sentiment analysis on scraped data 
+- Perform sentiment analysis on each dataset (NLP)
+- add actuals from financial data to datasets as independent variable
 
 ### Step 5
-- train data on actual financial stock prices to identify what predicts increase/decrease in stocks well
+- train data and tune model
 
 ### Step 5
 - Predict if stock goes up or down in next hour based on sentiment analysis

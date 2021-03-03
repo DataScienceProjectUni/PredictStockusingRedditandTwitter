@@ -1,0 +1,82 @@
+---
+title: "Twitter Scraper and sentiment analysis (Julius)"
+author: "Julius Antonio Bladt"
+date: "03/03/2021"
+output: html_document
+---
+
+First, I need access to the Twitter API, using credentials from my Twitter developer account:
+
+```{R}
+
+# Relevant library
+library(twitteR)
+
+#From the twitter app (Keys and tokens)
+api_key <- "AxFW62RAfgBjjQcBFH3f0r6N3" # API key 
+api_secret <- "MgvjDF0zr2OHP2kNy2Aix3YrpCGhjN3LVQ5bZJLT8anBt9djXz" #API secret key 
+token <- "1359545003656232961-SLFEIY1sj5D5tJbvsvXM6ouNP1FOnI" #token 
+token_secret <- "2IINsWj5KjyvTxUcMeEPF4vdWLkccROoO8k3NszMcTAE7" #token secret
+
+
+setup_twitter_oauth(api_key, api_secret, token, token_secret) # setup for accessing twitter using the information above
+
+
+```
+Then, I can scrape Twitter using the "searchTwitter" command. In this case, I search for Tweets with the hashtags "Gamestop", and the stock ticker "GME". I then place all the tweets in a data frame, and view it.
+
+```{R}
+
+tweets <- searchTwitter('#GME + #Gamestop', n=10000, lang = "en")
+tweets.df <-twListToDF(tweets) # creates data frame with one row per tweet
+
+```
+
+In this case, I search for Tweets with the hashtags "Gamestop", and the hashtag Gamestop stock ticker "GME". I can then visualize the most frequent words included in the Tweets:
+
+```{R}
+
+library(tidyverse)
+library(tidytext)
+library(ggplot2)
+
+tweet_words <- tweets.df %>% select(id, text) %>% unnest_tokens(word,text) # unnest_tokens will plit a column into tokens, flattening the table into one-token-per-row
+
+tweet_words %>% count(word,sort=T) %>% slice(1:20) %>% 
+  ggplot(aes(x = reorder(word, 
+                         n, function(n) -n), y = n)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 60, 
+                                                                                                                      hjust = 1)) + xlab("")
+
+```
+
+Words that have no inherent meaning when talking, such as "a", "able", "according" etc. are all removed from the data set, to only evaluate words that actually affect the sentiment of a Tweet when posted. Furthermore, there are words which does not have any meaning other than in the context of the tweets, such as "t.co", "https", and "rt". These are also removed:
+
+```{R}
+
+my_stop_words <- stop_words %>% select(-lexicon) %>% 
+  bind_rows(data.frame(word = c("https", "t.co", "rt"))) # using a stop-word lexicon to remove stop words + removing "https", "t.co", and "rt". 
+                           
+tweet_words_interesting <- tweet_words %>% anti_join(my_stop_words)
+
+tweet_words_interesting %>% group_by(word) %>% tally(sort=TRUE) %>% slice(1:25) %>% 
+    ggplot(aes(x = reorder(word, n, function(n) -n), y = n)) + geom_bar(stat = "identity") + 
+    theme(axis.text.x = element_text(angle = 60, hjust = 1)) + xlab("")
+
+
+```
+
+Here, we start to see some more interesting words, that actually relates to the context of the Gamestock stock. "diamondhands" refers to individuals who has purchased Gamestop stock, and are not willing to sell, in an effort to increase the price. "gmetothemoon" refers to the stock price soaring, i.e. going "to the moon" etc.
+
+
+
+
+
+
+
+
+
+
+
+
+
+

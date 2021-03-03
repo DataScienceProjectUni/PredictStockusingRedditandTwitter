@@ -101,9 +101,22 @@ tweet_words_interesting %>%
   labs(x = "Frequency of words in Tweets containing '#GME' or '#Gamestop'", y = NULL)
 
 
+Here, we see an arguable more accurate picture of the frequency of relevant words in the Tweets. "Halted" is the by far most negative word in relation to the Tweets, with a very high frequency. This makes sense, as there has been a lot of controversy involving the Gamestop stock, and different trading platforms limiting the amount of trades that can be made of this stock. Furthermore, there is no words that seem problematic in relation to the sentiment they are in. One problem to point out though is that there is 3 versions of the same word in the "uncertainty" sentiment, i.e. "prediction", "predictions", and "predicted". Since this dictionary actually properly captures the sentiments of the words, we can use it to check the count of the different sentiments surrounding the Gamestop stock:
+
+
+```{R}
+
+stock_sentiment_count <- tweet_words_interesting %>%
+  inner_join(get_sentiments("loughran"), by = "word") %>%
+  count(sentiment) %>%
+  spread(sentiment, n, fill = 0)
+
+stock_sentiment_count
+
+
 ```
 
-Here, we see an arguable mroe accurate picture of the sentiments of the Tweets. "Halted" is the by far most negative word in relation to the Tweets, with a very high frequency. This makes sense, as there has been a lot of controversy involving the Gamestop stock, and different trading platforms limiting the amount of trades that can be made of this stock. 
+We see that there by far is mostly negative words in Tweets about the Gamestop stock.
 
 
 

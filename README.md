@@ -28,6 +28,8 @@ The study will focus on the five most mentioned stocks available on the NASDAQ i
 
 Having identified the stocks, we will scrape relevant subreddits and twitter tweets (using the twitter API provided by Twitter) for their tickers, names and stock abbreviations. This will result in in primary data from both users mentioning the chosen stocks in comments on the chosen subreddits and twitter users mentioning the identified stock in tweets. 
 
+When scraping data on Reddit and Twitter, we scrape comments containing the ticker of the relevant stocks, e.g. "$GME". We also considered scraping for both "$GME" and "Gamestop". However, we argue this is suboptimal in terms of the research question we want to answer. A comment containing "$GME" will always be a comment placed in a financial context, whereas a comment containing "Gamestop" could also just be someone talking about Gamestop in a non-financial context, i.e. "I drank a soda after going to Gamestop today". And the last sentence will obviosuly not enrich us in regards to how specific stocks are talked about in financial contexts.
+
 Additionally, we will retrieve stock open and close prices for the identified stocks on yahoo finance. The secondary data on open and close stock price will be used as independent variable to measure stock movement i.e. if a stock value increases or decreases on a given day within the specified time frame. 
 
 ### Variables

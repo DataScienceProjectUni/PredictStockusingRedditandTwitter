@@ -62,6 +62,6 @@ We want to analyze whether there is a relationship between social media platform
 
 
 ## Limitations
-As we don't have the computational power then it limits our possibilities in terms of 
+We don't have the computational power which limits our possibilities in terms of doing hourly data collection and sentiment analysis
 
 ## Project time schedule

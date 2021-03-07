@@ -7,7 +7,8 @@ The efficient market hypothesis is a well known term in the financial world. It 
 "Is it possible to use Reddit and Twitter data, to predict short term movement in price of highly discussed stocks on these platforms?"
 
 ## Description
-We want to analyze whether there is a relationship between social media platforms and the volatility of stocks. We will do this by collecting data from the platforms Twitter and Reddit. We will retrieve data from tweets regarding certain stocks and posts on the subreddit "WallStreetBets" regarding the same stock. We will perform sentiment analysis on the text in relation to the mentioning of the stocks, which we will then compare to the actual market valuations of those stocks, to find trends in the volatility and valuations of the stocks, to find trends in the volatility and valuations of the stocks, and see if there is a relationship between social media and the volatility and value of stocks. 
+We want to analyze whether we can predict short term movements in the price of stocks. We will do this by collecting data from the platforms Twitter and Reddit. We will retrieve data from tweets regarding certain stocks and posts/comments on subreddits involving investing, such as "WallStreetBets" and "Investing". We will perform sentiment analysis on the text in relation to the mentioning of the stocks, which we will then compare to the actual market valuations of those stocks, to predict whether the price goes up or down.
+
 
 # Research design 
 

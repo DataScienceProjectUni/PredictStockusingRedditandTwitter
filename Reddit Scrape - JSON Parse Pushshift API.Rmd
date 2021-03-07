@@ -1,0 +1,29 @@
+---
+title: "Reddit Scrape - JSON Parse Pushshift API"
+author: "Rune Rathmann"
+date: "6/3/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(jsonlite)
+library(tidyquant)
+```
+
+```{r}
+subreddit <- c("wallstreetbets")
+startdate <- as.integer(as.POSIXct(DATE(2021,03,05)))
+enddate <- as.integer(as.POSIXct(DATE(2021,03,06)))
+
+url <- paste("https://api.pushshift.io/reddit/submission/search?subreddit=", subreddit, "&start=", startdate, "&end=", enddate, "&size=1000.json", sep = "")
+```
+
+```{r}
+document <- fromJSON(txt=url)
+titles <- document$data$title
+```
+

@@ -60,8 +60,8 @@ We then use the API key to fetch the stock data from the desired stocks based on
 
 ```{r}
 # Scaling is as simple as supplying multiple symbols
-tiingo_data <- c("FB", "MSFT") %>%
-    tq_get(get = "tiingo.iex", from = "2021-02-22", to = "2021-02-26", resample_frequency = "60min")
+tiingo_data <- c("FB", "MSFT","GME","AAPL") %>%
+    tq_get(get = "tiingo.iex", from = "2021-02-22", to = "2021-03-05", resample_frequency = "1hour")
 
 str(tiingo_data)
 ```

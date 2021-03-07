@@ -4,7 +4,7 @@
 The efficient market hypothesis is a well known term in the financial world. It arhues that current stock prices reflects all possible information about the stocks and thus the stocks at all times reflects their true value. This means that one can't predict the stock market with currently avaliable data, as this would already be reflected in the prices.  
 
 ## Research Question
-"Is it possible to use Reddit and Twitter data, to predict short term movement of highly discussed stocks on these platforms?"
+"Is it possible to use Reddit and Twitter data, to predict short term movement in price of highly discussed stocks on these platforms?"
 
 ## Description
 We want to analyze whether there is a relationship between social media platforms and the volatility of stocks. We will do this by collecting data from the platforms Twitter and Reddit. We will retrieve data from tweets regarding certain stocks and posts on the subreddit "WallStreetBets" regarding the same stock. We will perform sentiment analysis on the text in relation to the mentioning of the stocks, which we will then compare to the actual market valuations of those stocks, to find trends in the volatility and valuations of the stocks, to find trends in the volatility and valuations of the stocks, and see if there is a relationship between social media and the volatility and value of stocks. 
@@ -14,6 +14,13 @@ We want to analyze whether there is a relationship between social media platform
 ## Methodology 
 
 ## Data Collection
+
+### Variables
+ - Weekday 
+ - Sentiment score (Aggregated, -3 : 3?) 
+ - Stock (Ticker) 
+ - Volume (Mentions count) 
+ - DP = Stock movement Up/Down
 
 ### General
 - Hourly data (5 weekdays) 
@@ -53,7 +60,8 @@ We want to analyze whether there is a relationship between social media platform
 - Predict if stock goes up or down in next hour based on sentiment analysis
 
 
-## Limitations
 
+## Limitations
+As we don't have the computational power then it limits our possibilities in terms of 
 
 ## Project time schedule

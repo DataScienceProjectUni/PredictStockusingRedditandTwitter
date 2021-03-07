@@ -1,7 +1,7 @@
 # Relationship between SoMe and Stocks (Sentiment analysis)
 
 ## Introduction
-The efficient market hypothesis is a well known term in the financial world. It arhues that current stock prices reflects all possible information about the stocks and thus the stocks at all times reflects their true value. This means that one can't predict the stock market with currently avaliable data, as this would already be reflected in the prices.  
+The efficient market hypothesis is a well known term in the financial world. It argues that current stock prices reflects all possible information about the stocks and thus the stocks at all times reflects their true value. This means that one can't predict the stock market with currently avaliable data, as this would already be reflected in the prices.  
 
 ## Research Question
 "Is it possible to use Reddit and Twitter data, to predict short term movement in price of highly discussed stocks on these platforms?"

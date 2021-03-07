@@ -15,6 +15,8 @@ We want to analyze whether we can predict short term movements in the price of s
 ## Methodology 
 
 ## Data Collection
+Firstly, to identify the most mentioned stock in the chosen time frame, we will scrape relevant subreddits, using the "Pushshift Reddit API" available on github, that are concerned with the topic finance and investing. The study will focus on the five most mentioned stocks available on the NASDAQ in these subreddits. 
+Having identified the stocks, we will scrape relevant subreddits and twitter tweets (using the twitter API provided by Twitter) for their tickers, names and stock abbreviations. Additionally, we will retrieve stock open and close prices for the identified stocks on yahoo finance. The open and close stock price will be used as independent variable to measure stock movement i.e. if a stock value increases or decreases on a given day within the specified time frame. 
 
 ### Variables
  - Weekday 

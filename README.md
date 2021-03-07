@@ -76,5 +76,3 @@ Additionally, we will retrieve stock open and close prices for the identified st
 
 ## Limitations
 We don't have the computational power which limits our possibilities in terms of doing hourly data collection and sentiment analysis
-
-## Project time schedule

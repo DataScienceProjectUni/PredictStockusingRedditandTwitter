@@ -36,9 +36,8 @@ Additionally, we will retrieve stock open and close prices for the identified st
  - DP = Stock movement Up/Down
 
 ### General
-- Hourly data (5 weekdays) 
+- daily data (2 weeks) 
 - only NASDAQ
-  - during open market use hour-over-hour 
   - during close market use all what is mentioned during after hours and night to predict first hour after opening
 
 ### Step 1
@@ -54,10 +53,10 @@ Additionally, we will retrieve stock open and close prices for the identified st
   - use stock ticker and stock name
 
 #### Step 3.1
-- create hourly datasets for each of the 5 stocks 
+- create datasets for each of the 5 stocks 
 
 #### Step 3.2
-- get hourly financial data and classify if the stock goes up or down during a given hour
+- get daily financial data and classify if the stock goes up or down during a given day
 
 ### Step 4
 - Perform sentiment analysis on each dataset (NLP)
@@ -68,6 +67,7 @@ Additionally, we will retrieve stock open and close prices for the identified st
 - Extreme Gradient Boosting
 - Random Forrest
 - Logistic Regression
+- SVM
 
 ### Step 5
 - Predict if stock goes up or down in next hour based on sentiment analysis

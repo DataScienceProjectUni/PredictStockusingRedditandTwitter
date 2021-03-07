@@ -15,7 +15,7 @@ We want to analyze whether we can predict short term movements in the price of s
 ## Methodology 
 
 ### Design 
-In our study, we are applying a mixed method approach. We are analyzing natural language in the form of comments and tweets from reddit and twitter, respectively, using sentiment analysis. We then apply quantitative predictive modelling methods. In this, we are applying a deductive approach, testing the ecisting theories of sentiment analysis and predictive modeling.
+In our study, we are applying a mixed method approach. We are analyzing natural language in the form of comments and tweets from reddit and twitter, respectively, using sentiment analysis. We then apply quantitative predictive modelling methods. In this, we are applying a deductive approach, testing the existing theories of sentiment analysis and predictive modeling.
 
 We are conducting a longitudinal study in the sense that we are sampling a population of stocks and their prices in certain daily intervals. We have chosen this approach to be better able to establish the sequence of events and identify changes in the stock prices over time. This ultimately helps us better determine if there is a cause-and-effect relationship between the sentiment of social media and the changes in stock prices discussed on the platforms reddit and twitter.
 

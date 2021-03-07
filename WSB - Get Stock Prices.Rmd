@@ -9,32 +9,6 @@ output: word_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
-# install.packages('BatchGetSymbols')
-
-library(BatchGetSymbols)
-
-# set dates
-first.date <- Sys.Date() - 60
-last.date <- Sys.Date()
-freq.data <- 'daily'
-# set tickers
-tickers <- c('FB','MMM','PETR4.SA','abcdef')
-
-l.out <- BatchGetSymbols(tickers = tickers, 
-                         first.date = first.date,
-                         last.date = last.date, 
-                         freq.data = freq.data,
-                         cache.folder = file.path(tempdir(), 
-                                                  'BGS_Cache') ) # cache in tempdir()
-
-View(l.out)
-```
-
-
-```{r}
-library("QuantTools")
-```
 
 
 ```{r}
@@ -42,10 +16,66 @@ library("QuantTools")
 # install.packages("tidyquant")
 library(tidyverse)
 library(tidyquant)
-
-av_api_key("JS6L6NH86R1R2V9F")
-# Scaling is as simple as supplying multiple symbols
-c("FB", "MSFT") %>%
-    tq_get(get = "alphavantage", av_fun = "TIME_SERIES_INTRADAY", interval = "60min")
 ```
+
+We will use both the Alpha Vantage portal and the Tiingo portal.
+
+# Alpha Vantage
+
+We first assign the api key.
+```{r}
+av_api_key("JS6L6NH86R1R2V9F")
+```
+
+We then use the API key to fetch the stock data from the desired stocks based on their ticker symbol. We use the tq_get function from the tidyquant library. We specify that we want 60 min interval data to obtain hourly data.
+
+```{r}
+# Scaling is as simple as supplying multiple symbols
+stock_data <- c("FB", "MSFT") %>%
+    tq_get(get = "alphavantage", av_fun = "TIME_SERIES_INTRADAY", interval = "60min")
+
+str(stock_data)
+```
+
+We find that the stock data contains the ticker symbol, the timestamp (date and hour), the open price, the high price for the HOUR, the low price for the hour, the close price, and the volume traded.
+
+Once we have obtained the stock data, we want to classify the hour stock change as either going Up or Down in the hour. We simply do this by classifying the stocks as either up or down based on the difference between open and close price.
+
+```{r}
+stock_change <- ifelse((cbind(stock_data$open-stock_data$close))>0,"Down","Up")
+
+stock_data2 <- cbind(stock_data,stock_change)
+```
+
+
+
+# Tiingo
+
+We first assign the api key.
+```{r}
+tiingo_api_key("f2a7cc9f497139d18f1056bf911eac4b763ff621")
+```
+
+We then use the API key to fetch the stock data from the desired stocks based on their ticker symbol. We use the tq_get function from the tidyquant library. We specify that we want 60 min interval data to obtain hourly data.
+
+```{r}
+# Scaling is as simple as supplying multiple symbols
+tiingo_data <- c("FB", "MSFT","GME","AAPL") %>%
+    tq_get(get = "tiingo.iex", from = "2021-02-22", to = "2021-03-05", resample_frequency = "1hour")
+
+str(tiingo_data)
+```
+
+We find that the stock data contains the ticker symbol, the date (date and hour), the open price, the high price for the hourR, the low price for the hour, the close price, and the volume traded.
+
+Once we have obtained the stock data, we want to classify the hour stock change as either going Up or Down in the hour. We simply do this by classifying the stocks as either up or down based on the difference between open and close price.
+
+```{r}
+tiingo_change <- ifelse((cbind(tiingo_data$open-tiingo_data$close))>0,"Down","Up")
+
+tiingo_data2 <- cbind(tiingo_data,tiingo_change)
+```
+
+
+
 

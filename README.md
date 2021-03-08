@@ -49,10 +49,13 @@ Additionally, we will retrieve stock open and close prices for the identified st
 ### Step 1
 - choose/identify subreddits to identify most mentioned stocks in 
 - i.e. /r/SecurityAnalysis, /r/Finance, /r/WallStreetBets, /r/FinancialIndependence, /R/Investing, /r/Stocks, /r/StockMarket
+- Answer why these subreddits and why most mentioned stocks?
 
 ### Step 2
 - scrape reddit comments from identified subreddits 
 - use redditcomments to pick the 5 most mentioned stocks in that time period
+
+## Data Preperation
 
 ### Step 3
 - scrape reddit and twitter for the identified stocks in the chosen time period
@@ -60,13 +63,16 @@ Additionally, we will retrieve stock open and close prices for the identified st
 
 #### Step 3.1
 - create datasets for each of the 5 stocks 
-
+ - How are these beeing divided per day? 
+ 
 #### Step 3.2
 - get daily financial data and classify if the stock goes up or down during a given day
 
 ### Step 4
 - Perform sentiment analysis on each dataset (NLP)
 - add actuals from financial data to datasets as independent variable
+
+## Data Modelling
 
 ### Step 5
 - train data and tune model

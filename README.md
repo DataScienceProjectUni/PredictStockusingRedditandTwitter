@@ -33,11 +33,13 @@ When scraping data on Reddit and Twitter, we scrape comments containing the tick
 Additionally, we will retrieve stock open and close prices for the identified stocks on yahoo finance. The secondary data on open and close stock price will be used as independent variable to measure stock movement i.e. if a stock value increases or decreases on a given day within the specified time frame. 
 
 ### Variables
- - Weekday 
- - Sentiment score (Aggregated, -3 : 3?) 
+ - Weekday
+ - (Weekend as 1 day)
+ - Sentiment score from lexicon -> 6 variables 
  - Stock (Ticker) 
  - Volume (Mentions count) 
- - DP = Stock movement Up/Down
+ - DP = Stock movement Up/Down that day
+ - (DP2 = Stock movement up/Down next day)
 
 ### General
 - daily data (2 weeks) 

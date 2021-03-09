@@ -80,6 +80,9 @@ Additionally, we will retrieve stock open and close prices for the identified st
 - Random Forrest
 - Logistic Regression
 - SVM
+- Neural networks
+
+Sensitivity vs specificity depends on how risk averse the invester is. If the investor is more risk averse then the specificity should be higher aswell, in order to decrease the risk of making an investment that is predicted to increase, but decreases (a FP).  
 
 ### Step 5
 - Predict if stock goes up or down in next hour based on sentiment analysis

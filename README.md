@@ -91,3 +91,6 @@ Sensitivity vs specificity depends on how risk averse the invester is. If the in
 
 ## Limitations
 We don't have the computational power which limits our possibilities in terms of doing hourly data collection and sentiment analysis
+
+## Contrubtiona
+We have all equally contributed to the whole part of the project. This was done With the utilization of the GitHub platform that allowed us to all contribute to the main project from different branches while, revising all changes made together before mergering the changes to our main file. 

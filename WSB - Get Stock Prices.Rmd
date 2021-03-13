@@ -15,11 +15,11 @@ knitr::opts_chunk$set(echo = TRUE)
 library(BatchGetSymbols)
 
 # set dates
-first.date <- Sys.Date() - 60
+first.date <- Sys.Date() - 7
 last.date <- Sys.Date()
 freq.data <- 'daily'
 # set tickers
-tickers <- c('FB','MMM','PETR4.SA','abcdef')
+tickers <- c('AMC','AAPL','ALTR','GME')
 
 l.out <- BatchGetSymbols(tickers = tickers, 
                          first.date = first.date,

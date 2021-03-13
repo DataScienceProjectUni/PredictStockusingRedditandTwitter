@@ -20,7 +20,16 @@ library(tidyquant)
 
 We will use both the Alpha Vantage portal and the Tiingo portal.
 
+<<<<<<< HEAD
+# set dates
+first.date <- Sys.Date() - 7
+last.date <- Sys.Date()
+freq.data <- 'daily'
+# set tickers
+tickers <- c('AMC','AAPL','ALTR','GME')
+=======
 # Alpha Vantage
+>>>>>>> c7cdddaf41d9f4fda09723a010dcaba884ca334e
 
 We first assign the api key.
 ```{r}

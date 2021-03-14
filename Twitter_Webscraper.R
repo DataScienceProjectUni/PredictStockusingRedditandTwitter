@@ -116,7 +116,8 @@ price.list <- l.out[["df.tickers"]] # Extracting the list of prices
 price.list$change <- price.list$price.close - price.list$price.open # Calculating the price change variable
 price.list$movement <- ifelse(price.list$change>0, 1, 0) # Binary variable 1 stock went up, 0 stock didn't move or wen down
 price.list <- price.list %>%
-  mutate(day = wday(ref.date, label = TRUE, locale = "English_United States.1252"))
+  mutate(day = wday(ref.date-hours(24), label = TRUE, locale = "English_United States.1252"))
+# Making sure that the tweets until the stock market opens will be used to predict the movement of the stocks for that day. 
 
 
 

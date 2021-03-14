@@ -65,6 +65,7 @@ Additionally, we will retrieve stock open and close prices for the identified st
 - create datasets for each of the 5 stocks 
  - How are these beeing divided per day? We divide the tweets about the stocks to be from 09.00 to 09.00 the next day, these tweets are to predict the movement for the following opening hours of the financial market, from 09.00 to 17.00. 
 So i.e. Tweets from monday at 09.00 am untill 09.00 am on tuesday will be classified as tuesday's tweets. These are to predict the movement of the stocks in the following hours on tuesday.
+Saturday and sunday are begin grouped as wknd. 
  
 #### Step 3.2
 - get daily financial data and classify if the stock goes up or down during a given day

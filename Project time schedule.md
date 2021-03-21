@@ -19,6 +19,28 @@ Data cleaning and transformation/ feature engineering
 **Week 12**
 Building the prototype of the predictive model
 Start writing the report
+  - Assemble Raw Data
+  - Data Exploration
+  - Data Transformation
+  - Data Cleaning
+    - Creation of data Set(s) for analysis
+  - Theory Description
+  - In-Depth Method Description
+  - Analysis
+    - Sentiment Analysis  
+      - Model Specification and Lexicon Description
+      - Analysis
+      - Sentiment Classification 
+    - Stock Prediction
+      - Model Specification
+      - Model Training
+      - Model Testing
+  - Findings
+    - Sentiment findings
+    - Prediction findings
+  - Conlusions
+  - Recommendations
+  - Limitations 
 
 
 **Week 13 - 17**

@@ -21,8 +21,11 @@ Building the prototype of the predictive model
 Start writing the report
   - Assemble Raw Data
   - Data Exploration
-  - Data Transformation
-  - Data Cleaning
+    - add reddit words to dictionary
+    - descripe stock data, reddit data, and twitter data 
+  - Data Transformation & Cleaning
+    - find approppriate dictionary
+    - text pre-processing (stopwords etc.) 
     - Creation of data Set(s) for analysis
   - Theory Description
   - In-Depth Method Description

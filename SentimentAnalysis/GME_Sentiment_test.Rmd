@@ -1,0 +1,146 @@
+---
+title: "GME_clean"
+author: "Peer Woyczechowski"
+date: "3/23/2021"
+output: html_document
+---
+
+```{r}
+library(readr)
+clean1<- read_delim("DataCollection/RawData/GMEComments.csv", ";")[,c(4,6)]
+head(clean1)
+```
+
+
+Loading libraries
+```{r}
+library("tidyverse")
+library("lubridate")
+library("dplyr")
+library(readr)
+```
+
+
+Specify the stock
+```{r}
+ticker <- "GME"
+```
+
+
+Transforming the data to fit with twitter
+```{r}
+clean1$twitter <- 0 # adding a twitter 0 watermark on the data for identifications later vs Twitter
+clean1$ticker <- ticker # adding a ticker to the data for identifications later
+
+# Adding day of the week adjusted for the financial opening hours of the stock market
+#(i.e. From 09:00 Monday - 09:00 Tuesday = "Tue") as they are to predict the movement on tuesday
+clean1$created_utc <- as.POSIXct(clean1$created_utc) # Changeing to date time format
+clean1$created_utc <- clean1$created_utc + hours(1) # Changeing to CET time
+
+clean1 <- clean1 %>%
+  mutate(day = wday(created_utc + hours(15), label = TRUE, locale = "English_United States.1252"))
+```
+
+
+
+Merging saturday and sunday to wknd
+```{r}
+levels(clean1$day)[levels(clean1$day)=="Sun"] <- "Wknd"
+levels(clean1$day)[levels(clean1$day)=="Sat"] <- "Wknd"
+
+#remove thursday 17. 
+clean1_nothursday <- clean1[clean1$created_utc < "2021-03-17 10:00:00",]
+gme_comments <- clean1_nothursday
+View(clean1_nothursday)
+dim(clean1_nothursday)
+```
+
+# sentiment
+```{r}
+#gme_sample <- gme_comments[sample(nrow(gme_comments), 100), ]
+#view(gme_sample)
+
+library(tidyverse)
+library(tidytext)
+library(ggplot2)
+colnames(gme_comments)
+reddit_words <- gme_comments %>% select(body) %>% unnest_tokens(word,body) # unnest_tokens will plit a column into tokens, flattening the table into one-token-per-row
+
+reddit_words %>% count(word,sort=T) %>% slice(1:20) %>% 
+  ggplot(aes(x = reorder(word, 
+                         n, function(n) -n), y = n)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 60, 
+                                                                                                                      hjust = 1)) + xlab("")
+
+```
+
+Words that have no inherent meaning when talking, such as "a", "able", "according" etc. are all removed from the data set, to only evaluate words that actually affect the sentiment of a Tweet when posted. Furthermore, there are words which does not have any meaning other than in the context of the tweets, such as "t.co", "https", and "rt". These are also removed:
+
+```{R}
+
+my_stop_words <- stop_words %>% select(-lexicon) %>% 
+  bind_rows(data.frame(word = c("https", "t.co", "rt"))) # using a stop-word lexicon to remove stop words + removing "https", "t.co", and "rt". 
+                           
+reddit_words_interesting <- reddit_words %>% anti_join(my_stop_words)
+
+reddit_words_interesting %>% group_by(word) %>% tally(sort=TRUE) %>% slice(1:25) %>% 
+    ggplot(aes(x = reorder(word, n, function(n) -n), y = n)) + geom_bar(stat = "identity") + 
+    theme(axis.text.x = element_text(angle = 60, hjust = 1)) + xlab("")
+
+
+```
+
+Here, we start to see some more interesting words, that actually relates to the context of the Gamestock stock. "diamondhands" refers to individuals who has purchased Gamestop stock, and are not willing to sell, in an effort to increase the price. "gmetothemoon" refers to the stock price soaring, i.e. going "to the moon" etc.
+
+Now we can start conducting the actual sentiment analysis.
+
+```{r}
+#install.packages("textdata")
+library(textdata)
+reddit_words_interesting %>%
+  count(word, sort = TRUE) %>%
+  inner_join(get_sentiments("afinn"), by = "word") %>%
+  group_by(word) %>%
+  summarize(contribution = sum(n * value)) %>%
+  slice_max(abs(contribution), n = 12) %>%
+  mutate(word = reorder(word, contribution)) %>%
+  ggplot(aes(contribution, word)) +
+  geom_col() +
+  labs(x = "Frequency*AFINN value", y = NULL)
+
+
+```
+Some interesting words show up in the negative sentiments, such as panic, crazy, and different profanity. However, it is noticable that "shares" is the biggest contributor to the AFINN value, given it is inherently not a positive word. "Shares" in the context of financial data is not necesarily a positive word, but more likely being used as a netural noun (i.e. "TSLA is trading at $686,44/share")(https://www.tidytextmining.com/dtm.html) . This means that the AFINN lexicon is not good at capturing the actual sentiment behind words being used in the context of Tweets containing the hashtags "#GME" and "#Gamestop". Instead, other sentiment lexicons should be evaluated. One candidate is the Loughran and McDonald dictionary of financial sentiment terms. In the paper about this lexicon, the authors found that in a large sample of 10-Ks from 1994-2008, almost 3/4's of the words identified as negative by the Harvard Dictionary are not typically considered negative in financial contexts. The lexicon divides words into six sentiments: “positive”, “negative”, “litigious”, “uncertain”, “constraining”, and “superfluous” (Loughran and McDonald. 2011. “When Is a Liability Not a Liability? Textual Analysis, Dictionaries, and 10-Ks.” The Journal of Finance 66 (1): 35–65). Below, the lexicon is used on the Tweets containing "#Gamestop" and "#GME":
+
+```{R}
+
+reddit_words_interesting %>%
+  count(word) %>%
+  inner_join(get_sentiments("loughran"), by = "word") %>%
+  group_by(sentiment) %>%
+  slice_max(n, n = 5, with_ties = FALSE) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(n, word)) +
+  geom_col() +
+  facet_wrap(~ sentiment, scales = "free") +
+  labs(x = "Frequency of words in Tweets containing '#GME' or '#Gamestop'", y = NULL)
+
+````
+Here, we see an arguable more accurate picture of the frequency of relevant words in the Tweets. "Halted" is the by far most negative word in relation to the Tweets, with a very high frequency. This makes sense, as there has been a lot of controversy involving the Gamestop stock, and different trading platforms limiting the amount of trades that can be made of this stock. Furthermore, there is no words that seem problematic in relation to the sentiment they are in. One problem to point out though is that there is 3 versions of the same word in the "uncertainty" sentiment, i.e. "prediction", "predictions", and "predicted". Since this dictionary actually properly captures the sentiments of the words, we can use it to check the count of the different sentiments surrounding the Gamestop stock:
+
+
+```{R}
+
+stock_sentiment_count <- reddit_words_interesting %>%
+  inner_join(get_sentiments("loughran"), by = "word") %>%
+  count(sentiment) %>%
+  spread(sentiment, n, fill = 0)
+
+stock_sentiment_count
+
+
+```
+
+We see that there by far is mostly negative words in Tweets about the Gamestop stock.
+
+

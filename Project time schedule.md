@@ -35,6 +35,9 @@ Start writing the report
     - why comments and not posts on reddit (volume, wom better represented with comments)
     - restrict stock selection of >5 
   - Data Transformation & Cleaning
+    - Make the Reddit data and Twitter data compatible
+      - Fit date and time to CET
+      - From 09.00 to 09.00 to fit with stock market
     - find approppriate dictionary
     - text pre-processing (stopwords etc.) 
     - Creation of data Set(s) for analysis

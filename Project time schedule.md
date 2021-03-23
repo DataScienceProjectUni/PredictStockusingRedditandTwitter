@@ -23,6 +23,17 @@ Start writing the report
   - Data Exploration
     - add reddit words to dictionary
     - descripe stock data, reddit data, and twitter data 
+    - describe subreddits, twitter 
+    - describe why we choose these platforms and subreddit (size, preferable subreddits, different audiences)
+    - describe how we restricted the APIs and why 
+    - selection of stocks (memestocks vs. other stocks)
+    - what kind of stocks (tech e.g.) 
+    - what time period for scraping 
+    - constraint that we chose stocks based solely on reddit data 
+    - constraint to blacklist certain stock names from NYSE NASDAQ and AMEX (stock names are words)
+    - decision to only take $GME and GME and not gamestop to restrict to financial comments
+    - why comments and not posts on reddit (volume, wom better represented with comments)
+    - restrict stock selection of >5 
   - Data Transformation & Cleaning
     - find approppriate dictionary
     - text pre-processing (stopwords etc.) 

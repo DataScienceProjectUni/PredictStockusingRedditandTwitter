@@ -1,0 +1,56 @@
+---
+title: "Cleaning Reddit"
+author: "Mikkel Nymark Graugaard"
+date: "23/3/2021"
+output: html_document
+---
+
+Loading libraries
+```{r}
+library("tidyverse")
+library("lubridate")
+library("dplyr")
+library(readr)
+```
+
+Loading the data
+```{r}
+clean1 <- read.csv("~/R-data/Data Science Project/PredictStockusingRedditandTwitter/DataCollection/RawData/TSLAComments.csv", sep = ";")[,3:6]
+```
+
+
+Specify the stock
+```{r}
+ticker <- "TSLA"
+```
+
+
+Transforming the data to fit with twitter
+```{r}
+clean1$twitter <- 0 # adding a twitter 0 watermark on the data for identifications later vs Twitter
+clean1$ticker <- ticker # adding a ticker to the data for identifications later
+
+# Adding day of the week adjusted for the financial opening hours of the stock market
+#(i.e. From 09:00 Monday - 09:00 Tuesday = "Tue") as they are to predict the movement on tuesday
+clean1$created_utc <- as.POSIXct(clean1$created_utc) # Changeing to date time format
+clean1$created_utc <- clean1$created_utc + hours(1) # Changeing to CET time
+
+clean1 <- clean1 %>%
+  mutate(day = wday(created_utc + hours(15), label = TRUE, locale = "English_United States.1252"))
+```
+
+
+
+Merging saturday and sunday to wknd
+```{r}
+levels(clean1$day)[levels(clean1$day)=="Sun"] <- "Wknd"
+levels(clean1$day)[levels(clean1$day)=="Sat"] <- "Wknd"
+```
+
+
+
+Saving as a CSV file ready for sentiment analysis
+```{r}
+write.csv(clean1,"~/R-data/Data Science Project/PredictStockusingRedditandTwitter/DataCleaning\\Reddit_TSLA_clean.csv",
+          row.names = FALSE)
+```

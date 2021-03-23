@@ -27,7 +27,10 @@ Start writing the report
     - find approppriate dictionary
     - text pre-processing (stopwords etc.) 
     - Creation of data Set(s) for analysis
+    - identify prediction periods (rolling training sets)
+    - decode emojys as text 
   - Theory Description
+  - Argumentation for methods and decisions in context with research question 
   - In-Depth Method Description
   - Analysis
     - Sentiment Analysis  

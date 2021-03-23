@@ -176,7 +176,7 @@ tweets <- bind_rows(tweets.gme, tweets.amc, tweets.pltr, tweets.BB, tweets.tsla,
 
 
 levels(tweets$day)[levels(tweets$day)=="Sun"] <- "wknd"
-levels(tweets$day)[levels(tweets$day)=="Sat"] <- "Wknd"
+levels(tweets$day)[levels(tweets$day)=="Sat"] <- "wknd"
 
 ###############################################################
   

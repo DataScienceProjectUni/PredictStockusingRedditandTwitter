@@ -1,0 +1,30 @@
+---
+title: "word_lists_from_lexicon"
+author: "Julius Antonio Bladt"
+date: "24/03/2021"
+output: html_document
+---
+
+```{R}
+
+#loughran <- get_sentiments("loughran") 
+
+#constraining <- subset(loughran, sentiment == "constraining", select=word)
+#write.csv(constraining,"C:/Users/Julius Antonio Bladt/Desktop/Business Intelligence semester 2/Data Science Project/Actual Report/PredictStockusingRedditandTwitter\\constraining_words.csv", row.names = FALSE)
+
+litigious <- subset(loughran, sentiment == "litigious", select=word)
+write.csv(constraining,"C:/Users/Julius Antonio Bladt/Desktop/Business Intelligence semester 2/Data Science Project/Actual Report/PredictStockusingRedditandTwitter\\litigious_words.csv", row.names = FALSE)
+
+superfluous <- subset(loughran, sentiment == "superfluous", select=word)
+write.csv(constraining,"C:/Users/Julius Antonio Bladt/Desktop/Business Intelligence semester 2/Data Science Project/Actual Report/PredictStockusingRedditandTwitter\\superfluous_words.csv", row.names = FALSE)
+
+positive <- subset(loughran, sentiment == "positive", select=word)
+write.csv(constraining,"C:/Users/Julius Antonio Bladt/Desktop/Business Intelligence semester 2/Data Science Project/Actual Report/PredictStockusingRedditandTwitter\\positive_words.csv", row.names = FALSE)
+
+negative <- subset(loughran, sentiment == "negative", select=word)
+write.csv(constraining,"C:/Users/Julius Antonio Bladt/Desktop/Business Intelligence semester 2/Data Science Project/Actual Report/PredictStockusingRedditandTwitter\\negative_words.csv", row.names = FALSE)
+
+uncertainty <- subset(loughran, sentiment == "uncertainty", select=word)
+write.csv(constraining,"C:/Users/Julius Antonio Bladt/Desktop/Business Intelligence semester 2/Data Science Project/Actual Report/PredictStockusingRedditandTwitter\\uncertainty_words.csv", row.names = FALSE)
+
+```

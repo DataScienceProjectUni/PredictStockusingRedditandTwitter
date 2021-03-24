@@ -99,6 +99,11 @@ test <- gme %>%
   dplyr::summarise(across(where(is.numeric), ~ sum(.x)))
 
 
+#sum up hours that are not within time of open stock market
+## NEEDS TO BE DONE 
+
+
+
 # create % sentiment for each category
 sum <- (test$positive+test$negative+test$litigious+test$superfluous+test$constraining+test$uncertainty)
 gme_final <- cbind(test, test$positive/sum, test$negative/sum, test$litigious/sum, test$superfluous/sum,test$constraining/sum,test$uncertainty/sum )

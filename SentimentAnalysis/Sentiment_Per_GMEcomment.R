@@ -1,11 +1,14 @@
 
 # install.packages(c("plyr","stringr"), dependencies = T)
 
+#load libs
 library(plyr)
 library(stringr)
+library(readr)
+library(dplyr)
+library(lubridate)
 
-# calculating sentiment score
-
+# calculating sentiment score using custom function 
 score_sentiment = function(sentences, positive_words, negative_words,
                            litigious_words, superfluous_words,
                            constraining_words, uncertainty_words, .progress='none')
@@ -58,37 +61,70 @@ constraining_words = scan ('~/Desktop/Uni/BI/2. semester/Data Science Project/Pr
 uncertainty_words = scan ('~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/uncertainty_words.csv', what = 'character', comment.char =';')
 
 
+
 #import csv file
 gme <- read.delim('~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/DataCollection/RawData/AMCComments.csv', sep= ";")[,4:6]
-gme$body <-as.factor(gme$body) 
+gme$body <-as.factor(gme$body) # change text to factor
+
+
+# Changeing to date time format and CET time
+gme$created_utc <- as.POSIXct(gme$created_utc) 
+gme$created_utc <- gme$created_utc + hours(1) # Changeing to CET time
 
 
 
 #calculating scores
-scores = score_sentiment(gme$body, positive_words, negative_words, litigious_words, superfluous_words,constraining_words, uncertainty_words, .progress='text')
+scores <- score_sentiment(gme$body, positive_words, negative_words, litigious_words, superfluous_words,constraining_words, uncertainty_words, .progress='text')
 
-gme$scores <- scores[,]
+# adding scored to dataset
+gme$positive <- scores[,1]
+gme$negative <- scores[,2]
+gme$litigious <- scores[,3]
+gme$superfluous <- scores[,4]
+gme$constraining <- scores[,5]
+gme$uncertainty <- scores[,6]
 
+# drop body, subreddit from dataset
+gme <- gme[,3:9]
+gme[2:7] <- sapply(gme[,2:7],as.numeric)
+#str(gme) 
 
-
-
-
-library(readr)
-library(dplyr)
-library(lubridate)
-
-
-
+# sum sentiment counts and group by day and hour of the day
 test <- gme %>%
   mutate(Time = as.POSIXct(created_utc)) %>%
-  dplyr::group_by(lubridate::day(Time)) %>%
-  dplyr::group_by(lubridate::hour(Time), .add=TRUE) %>% 
-  dplyr::summarise(n=sum(scores))
+  dplyr::group_by(lubridate::year(Time)) %>%
+  dplyr::group_by(lubridate::month(Time), .add=TRUE) %>%
+  dplyr::group_by(lubridate::day(Time), .add=TRUE) %>%
+  dplyr::group_by(lubridate::hour(Time), .add=TRUE)%>% 
+  dplyr::summarise(across(where(is.numeric), ~ sum(.x)))
 
 
-?group_by
+# create % sentiment for each category
+sum <- (test$positive+test$negative+test$litigious+test$superfluous+test$constraining+test$uncertainty)
+gme_final <- cbind(test, test$positive/sum, test$negative/sum, test$litigious/sum, test$superfluous/sum,test$constraining/sum,test$uncertainty/sum )
+
+# rename comments
+colnames(gme_final)[1] <- "year"
+colnames(gme_final)[2] <- "month"
+colnames(gme_final)[3] <- "day"
+colnames(gme_final)[4] <- "hour"
+gme_final[1:4] <- sapply(gme_final[,1:4],as.factor)
 
 
+colnames(gme_final)[11] <- "positive_percent"
+colnames(gme_final)[12] <- "negative_percent"
+colnames(gme_final)[13] <- "litigious_percent"
+colnames(gme_final)[14] <- "superfluous_percent"
+colnames(gme_final)[15] <- "constraining_percent"
+colnames(gme_final)[16] <- "uncertainty_percent"
 
+# get timestamp back
+gme_final$timestamp_etc <- paste(gme_final$year, gme_final$month, gme_final$day, sep="-")
+gme_final$hour_min_s <- paste(gme_final$hour, "00","00", sep=":")
+gme_final$timestamp_etc <- paste(gme_final$timestamp_etc, gme_final$hour_min_s, sep=" ")
+gme_final$timestamp_etc <- as.POSIXct(gme_final$timestamp_etc)
+
+#remove superfluous variables 
+gme_final <- gme_final[-c(1:4,18)]
 
 

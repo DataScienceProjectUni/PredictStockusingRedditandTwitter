@@ -128,5 +128,5 @@ gme_final$timestamp_etc <- as.POSIXct(gme_final$timestamp_etc)
 gme_final <- gme_final[-c(1:4,18)]
 
 
-write.csv(gme_final, "/Users/peerwoyzcechowski/Desktop/Uni/BI/2.\ semester/Data\ Science\ Project/PredictStockusingRedditandTwitter/SentimentAnalysis\\GME_Sentiment.csv", row.names = FALSE)
-
+write.csv(gme_final, "\\GME_Sentiment.csv", row.names = FALSE)
+getwd()

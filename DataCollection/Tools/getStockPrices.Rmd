@@ -1,0 +1,94 @@
+---
+title: "tidyqunatGetStockPrices"
+author: "Rune Rathmann"
+date: "28/2/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+# install.packages("tidyverse")
+# install.packages("tidyquant")
+library(tidyverse)
+library(tidyquant)
+```
+
+
+We first assign the api key.
+```{r}
+av_api_key("JS6L6NH86R1R2V9F")
+tiingo_api_key('f2a7cc9f497139d18f1056bf911eac4b763ff621')
+```
+
+We then use the API key to fetch the stock data from the desired stocks based on their ticker symbol. We use the tq_get function from the tidyquant library. We specify that we want daily data. We then filter the output for the dates we are interested in.
+
+```{r}
+# Scaling is as simple as supplying multiple symbols
+stock_data <- c("GME", "AMC","PLTR","BB","TSLA","APHA","TLRY","NIO","RE","RKT","AAPL") %>%
+    tq_get(get = "alphavantage", av_fun = "TIME_SERIES_INTRADAY", interval = "60min")
+
+stock_data <- filter(stock_data, between(timestamp, as.Date('2021-03-08'), as.Date('2021-03-21')))
+
+view(stock_data)
+
+
+# Scaling is as simple as supplying multiple symbols
+stock_data <- c("GME", "AMC","PLTR","BB","TSLA","APHA","TLRY","NIO","RE","RKT","AAPL") %>%
+    tq_get(get = "tiingo.iex",from = '2021-03-08', to = '2021-03-21', resample_frequency = "60min")
+
+```
+
+We find that the stock data contains the ticker symbol, the timestamp (date and hour), the open price, the high price for the day, the low price for the day, the close price, and the volume traded as well as some insigficant parameters which will be excluded in the cleaning process.
+
+Once we have obtained the stock data, we want to classify the hour stock change as either going Up or Down in the hour. We simply do this by classifying the stocks as either up or down based on the difference between open and close price.
+
+```{r}
+stock_change <- ifelse((cbind(stock_data$open-stock_data$close))>0,"0","1")
+
+
+library(dplyr)
+
+# for (i in 1:5) {
+#  as.name(paste("lag",i,sep = "")) <- data.frame(close = stock_data$close)
+#  paste("lag",i,sep = "") <- as.data.frame(paste("lag",i,sep = "")) %>% 
+#    mutate(paste("lag",i,sep = "") = ifelse(lag(close,n = i) > close, "0", "1"))
+#  paste("lag",i,sep = "") <- as.data.frame(paste("lag",i,sep = "")[,2])  
+#}
+lead1 <- data.frame(close = stock_data$close)
+lead1 <- as.data.frame(lead1) %>% 
+  mutate(lead1 = ifelse(lead(close,n = 1) > close, "1", "0"))
+lead1 <- as.data.frame(lead1[,2])
+
+lead2 <- data.frame(close = stock_data$close)
+lead2 <- as.data.frame(lead2) %>% 
+  mutate(lead2 = ifelse(lead(close,n = 2) > close, "1", "0"))
+lead2 <- as.data.frame(lead2[,2])
+
+lead3 <- data.frame(close = stock_data$close)
+lead3 <- as.data.frame(lead3) %>% 
+  mutate(lead3 = ifelse(lead(close,n = 3) > close, "1", "0"))
+lead3 <- as.data.frame(lead3[,2])
+
+lead4 <- data.frame(close = stock_data$close)
+lead4 <- as.data.frame(lead4) %>% 
+  mutate(lead4 = ifelse(lead(close,n = 4) > close, "1", "0"))
+lead4 <- as.data.frame(lead4[,2])
+
+lead5 <- data.frame(close = stock_data$close)
+lead5 <- as.data.frame(lead5) %>% 
+  mutate(lead5 = ifelse(lead(close,n = 5 ) > close, "1", "0"))
+lead5 <- as.data.frame(lead5[,2])
+
+stock_data2 <- cbind(stock_data,stock_change, "lead1" = lead1, "lead2" = lead2, "lead3" = lead3, "lead4" = lead4, "lead5" = lead5)
+
+write.csv(stock_data2,  "C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PredictStockusingRedditandTwitter/DataCollection/RawData/stockDataRaw.csv")
+```
+
+We also want to be able to test lead prediction in our predictive model later on i.e., we want to predict x periods into the future thus, we create future change variables up to t+5 periods. These will be the difference between close price t and close price t5, for 5 periods into the future that is. We do this in order to train the model on what happened the t-period after the period of the sentiment.
+
+

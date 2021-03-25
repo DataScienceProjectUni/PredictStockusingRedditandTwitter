@@ -63,7 +63,7 @@ uncertainty_words = scan ('~/Desktop/Uni/BI/2. semester/Data Science Project/Pre
 
 
 #import csv file
-gme <- read.delim('~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/DataCollection/RawData/AMCComments.csv', sep= ";")[,4:6]
+gme <- read.delim('~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/DataCleaning/gme_clean.csv', sep= ",")
 gme$body <-as.factor(gme$body) # change text to factor
 
 
@@ -80,22 +80,71 @@ gme$constraining <- scores[,5]
 gme$uncertainty <- scores[,6]
 
 # drop body, subreddit from dataset
-gme <- gme[,3:9]
+gme <- gme[,-2]
 gme[2:7] <- sapply(gme[,2:7],as.numeric)
 #str(gme) 
 
 # sum sentiment counts and group by day and hour of the day
 test <- gme %>%
   mutate(Time = as.POSIXct(created_utc)) %>%
-  dplyr::group_by(lubridate::year(Time)) %>%
-  dplyr::group_by(lubridate::month(Time), .add=TRUE) %>%
-  dplyr::group_by(lubridate::day(Time), .add=TRUE) %>%
-  dplyr::group_by(lubridate::hour(Time), .add=TRUE)%>% 
+  dplyr::group_by(year =lubridate::year(Time)) %>%
+  dplyr::group_by(month = lubridate::month(Time), .add=TRUE) %>%
+  dplyr::group_by(day =lubridate::day(Time), .add=TRUE) %>%
+  dplyr::group_by(hour =lubridate::hour(Time), .add=TRUE)%>% 
   dplyr::summarise(across(where(is.numeric), ~ sum(.x)))
+
+# JUST ONCE we need to sum up the first hours 00:00 to 15:00 as just one hour i.e. 15:00
+# then we need to sum up every 21:00 to 15:00 as just one hour as 21:00
+
+## sum first 16 hours (once)
+# slice to get only first 16 hours
+test3 <- test %>% 
+  "["(.,1:16,)
+
+#sum first 16 hours as 1 hour
+test4 <- test3 %>% 
+  group_by(year,month,day) %>% 
+  summarize(across(positive:uncertainty, ~ sum(.x, na.rm = TRUE)))
+
+test4$day <- 8
+test4$hour <- "15" %>% as.numeric()
+test4 <- test4[,c(1:3,10,4:9)]
+
+
+
+## Now do it for the rest of the observations  
+
+# remove first 16 observations
+test10 <- test %>% 
+  "["(.,17:nrow(test2),)
+
+#slice to get hours outside of stock opening
+test10 <- test10 %>% 
+  filter(!hour %in% 15:20)
+
+#group by every 18th row which is from 21:00 to 15:00
+test11 <- test10 %>% 
+  group_by(year,month,day=rep(row_number(), length.out = n(), each = 18)) %>% 
+  summarize(across(positive:uncertainty, ~ sum(.x, na.rm = TRUE)))
+
+test11$day <- (9:15)
+test11$hour <- "21" %>% as.numeric()
+test11 <- test11[,c(1:3,10,4:9)]
+
+#slice to get hours outside of stock opening
+test20 <- test %>% 
+  filter(hour %in% 15:20) 
+
+
+#combine the two dataframes to have all 21:00 
+test30 <- rbind(test4,test20,test11)
+test30 <- test30[with(test30, order(test30$day)), ]
+test30 <- head(test30,-2) #remove last 2 rows 
 
 
 #sum up hours that are not within time of open stock market
 ## NEEDS TO BE DONE 
+
 
 
 

@@ -84,7 +84,9 @@ tweet_words_interesting %>%
 
 
 ```
+
 Some interesting words show up in the negative sentiments, such as panic, crazy, and different profanity. However, it is noticable that "shares" is the biggest contributor to the AFINN value, given it is inherently not a positive word. "Shares" in the context of financial data is not necesarily a positive word, but more likely being used as a netural noun (i.e. "TSLA is trading at $686,44/share")(https://www.tidytextmining.com/dtm.html) . This means that the AFINN lexicon is not good at capturing the actual sentiment behind words being used in the context of Tweets containing the hashtags "#GME" and "#Gamestop". Instead, other sentiment lexicons should be evaluated. One candidate is the Loughran and McDonald dictionary of financial sentiment terms. In the paper about this lexicon, the authors found that in a large sample of 10-Ks from 1994-2008, almost 3/4's of the words identified as negative by the Harvard Dictionary are not typically considered negative in financial contexts. The lexicon divides words into six sentiments: “positive”, “negative”, “litigious”, “uncertain”, “constraining”, and “superfluous” (Loughran and McDonald. 2011. “When Is a Liability Not a Liability? Textual Analysis, Dictionaries, and 10-Ks.” The Journal of Finance 66 (1): 35–65). Below, the lexicon is used on the Tweets containing "#Gamestop" and "#GME":
+
 
 ```{R}
 

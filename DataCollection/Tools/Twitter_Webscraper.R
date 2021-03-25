@@ -217,5 +217,6 @@ week10.tweets = merge(x=tweets, y=price.list[,c(5,8,11,12,13)], by.x=c("day", "t
 
 
 # Saving as a CSV file ready for sentiment analysis
-write.csv(week10.tweets,"~/R-data/Data Science Project/PredictStockusingRedditandTwitter\\week10_tweets.csv", row.names = FALSE)
+write.csv(week10.tweets,"~/R-data/Data Science Project/PredictStockusingRedditandTwitter\\week10_tweets_time_shifted.csv", row.names = FALSE)
 
+# OBS these tweets are shifted in terms of time! 

@@ -67,11 +67,6 @@ gme <- read.delim('~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStoc
 gme$body <-as.factor(gme$body) # change text to factor
 
 
-# Changeing to date time format and CET time
-gme$created_utc <- as.POSIXct(gme$created_utc) 
-gme$created_utc <- gme$created_utc + hours(1) # Changeing to CET time
-
-
 
 #calculating scores
 scores <- score_sentiment(gme$body, positive_words, negative_words, litigious_words, superfluous_words,constraining_words, uncertainty_words, .progress='text')

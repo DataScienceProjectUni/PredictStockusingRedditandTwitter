@@ -7,15 +7,24 @@ twitter10 <- read.delim("DataCollection/RawData/week10_tweets.csv", sep=",")[,c(
 twitter11 <- read.delim("DataCollection/RawData/week11_tweets.csv", sep=",")[,c(2,3,4)]
 
 
-# Cutting the timeframe of week 11 Twitter data to fit with Reddit data timframe
-twitter11.1 <- twitter11[twitter11$created_at < "2021-03-17 18:00:00",]
-
 # Appending the 2 data frames
-full_twitter <- rbind(twitter10, twitter11.1) 
-rm("twitter10","twitter11","twitter11.1")
+full_twitter1 <- rbind(twitter10, twitter11) 
+
+# Changeing the Twitter time from cet to utc to fir with the stock data and reddit data
+full_twitter1$created_at <- as.POSIXct(full_twitter1$created_at) 
+full_twitter1$created_at <- full_twitter1$created_at - hours(1) # Changeing to UTC time
+
+
+# Cutting the timeframe of week 11 Twitter data to fit with Reddit data timframe
+full_twitter <- full_twitter1[full_twitter1$created_at < "2021-03-17 18:00:00" & full_twitter1$created_at > "2021-03-07 23:59:59" ,]
+
+rm("twitter10","twitter11","full_twitter1", "full_twitter2")
+
+
+
 
 # Renaming columns to fit with Reddit data
-colnames(full_twitter)[2] <- "created_cet"
+colnames(full_twitter)[2] <- "created_utc"
 colnames(full_twitter)[3] <- "body"
 
 
@@ -35,36 +44,36 @@ tlry <- read.delim("DataCollection/RawData/TLRYComments.csv", sep=";")[,c(6,4)]
 tsla <- read.delim("DataCollection/RawData/TSLAComments.csv", sep=";")[,c(6,4)]
 
 
-
+# Changeing to a time variable
 amc$created_utc <- as.POSIXct(amc$created_utc) 
-amc$created_utc <- amc$created_utc + hours(1) # Changeing to CET time
+
 
 apha$created_utc <- as.POSIXct(apha$created_utc) 
-apha$created_utc <- apha$created_utc + hours(1) # Changeing to CET time
+
 
 aapl$created_utc <- as.POSIXct(aapl$created_utc) 
-aapl$created_utc <- aapl$created_utc + hours(1) # Changeing to CET time
+
 
 bb$created_utc <- as.POSIXct(bb$created_utc) 
-bb$created_utc <- bb$created_utc + hours(1) # Changeing to CET time
+
 
 gme$created_utc <- as.POSIXct(gme$created_utc) 
-gme$created_utc <- gme$created_utc + hours(1) # Changeing to CET time
+
 
 nio$created_utc <- as.POSIXct(nio$created_utc) 
-nio$created_utc <- nio$created_utc + hours(1) # Changeing to CET time
+
 
 pltr$created_utc <- as.POSIXct(pltr$created_utc) 
-pltr$created_utc <- pltr$created_utc + hours(1) # Changeing to CET time
+
 
 rkt$created_utc <- as.POSIXct(rkt$created_utc) 
-rkt$created_utc <- rkt$created_utc + hours(1) # Changeing to CET time
+
 
 tlry$created_utc <- as.POSIXct(tlry$created_utc) 
-tlry$created_utc <- tlry$created_utc + hours(1) # Changeing to CET time
+
 
 tsla$created_utc <- as.POSIXct(tsla$created_utc) 
-tsla$created_utc <- tsla$created_utc + hours(1) # Changeing to CET time
+
 
 
 
@@ -75,7 +84,7 @@ ticker <- c('gme', 'amc', 'pltr', 'bb', 'tsla', 'apha', 'tlry', 'nio', 'rkt', 'a
 
 for (i in ticker){ 
   x <- get(i)
-  colnames(x)[1] <- "created_cet"
+  colnames(x)[1] <- "created_utc"
   assign(i, x)
 }
 

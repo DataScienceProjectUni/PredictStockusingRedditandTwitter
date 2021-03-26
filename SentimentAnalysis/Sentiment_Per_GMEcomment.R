@@ -242,7 +242,8 @@ tiingo_api_key('f2a7cc9f497139d18f1056bf911eac4b763ff621')
 gme_stock_data <- c("GME", "AMC","PLTR","BB","TSLA","APHA","TLRY","NIO","RE","RKT","AAPL") %>%
   tq_get(get = "tiingo.iex",from = '2021-03-08', to = '2021-03-17', resample_frequency = "60min")
 
-
+gme_stock_data$movement <- ifelse((cbind(gme_stock_data$open-gme_stock_data$close))>0,"0","1")
+  
 #remove 21:00:00 hour
 gme_stock_data <- subset(gme_stock_data, symbol == "GME" & volume !=0)
 
@@ -255,7 +256,7 @@ gme_final$created_utc <- as.POSIXct(gme_final$created_utc)
 gme_merge <- cbind(gme_stock_data,gme_final)
 
 #remove superfluous variables 
-gme_merge <- gme_merge[-c(1,20)]
+gme_merge <- gme_merge[-c(1,9:14,21)]
 #'************************END*********************************************#
 
-
+write_csv(gme_merge, "~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/DataCleaning\\GME_merged.csv", row.names = FALSE)

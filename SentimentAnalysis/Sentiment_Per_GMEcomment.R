@@ -252,12 +252,10 @@ gme_stock_data$created_utc <- as.POSIXct(gme_stock_data$created_utc)
 gme_final$created_utc <- as.POSIXct(gme_final$created_utc)
 
 #merge dataset #DOESNT MERGE ALL
-gme_merge <- left_join(gme_stock_data,gme_final, by="created_utc", all=TRUE)
+gme_merge <- cbind(gme_stock_data,gme_final)
 
-#gme_merge <- merge(gme_stock_data,gme_final)
-
+#remove superfluous variables 
+gme_merge <- gme_merge[-c(1,20)]
 #'************************END*********************************************#
 
-#merge with stock data 
-write.csv(gme_final, "GME_FinalData.csv", row.names = FALSE)
-getwd()
+

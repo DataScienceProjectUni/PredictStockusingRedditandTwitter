@@ -257,6 +257,8 @@ gme_merge <- cbind(gme_stock_data,gme_final)
 
 #remove superfluous variables 
 gme_merge <- gme_merge[-c(1,9:14,21)]
+
 #'************************END*********************************************#
 
-write_csv(gme_merge, "~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/DataCleaning\\GME_merged.csv", row.names = FALSE)
+write_csv(gme_merge, "~/DataCleaning\\GME_merged.csv")
+

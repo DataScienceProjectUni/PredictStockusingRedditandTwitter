@@ -252,9 +252,9 @@ gme_stock_data$created_utc <- as.POSIXct(gme_stock_data$created_utc)
 gme_final$created_utc <- as.POSIXct(gme_final$created_utc)
 
 #merge dataset #DOESNT MERGE ALL
-gme_merge <- left_join(gme_stock_data,gme_final, by="created_utc", all.x=TRUE)
+gme_merge <- left_join(gme_stock_data,gme_final, by="created_utc", all=TRUE)
 
-gme_merge <- merge(gme_stock_data,gme_final)
+#gme_merge <- merge(gme_stock_data,gme_final)
 
 #'************************END*********************************************#
 

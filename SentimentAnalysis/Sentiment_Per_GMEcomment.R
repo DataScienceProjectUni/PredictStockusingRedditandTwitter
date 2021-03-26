@@ -252,12 +252,17 @@ colnames(gme_stock_data)[2] <- "created_utc"
 gme_stock_data$created_utc <- as.POSIXct(gme_stock_data$created_utc)
 gme_final$created_utc <- as.POSIXct(gme_final$created_utc)
 
-#merge dataset #DOESNT MERGE ALL
+#merge dataset
 gme_merge <- cbind(gme_stock_data,gme_final)
 
 #remove superfluous variables 
 gme_merge <- gme_merge[-c(1,9:14,21)]
 
+#create lead movement column
+gme_merge <- tibble(gme_merge,lead_movement = lead(gme_merge$movement))
+
+gme_merge <- gme_merge[-c(7)]
+gme_merge$lead_movement <- as.numeric(gme_merge$lead_movement)
 #'************************END*********************************************#
 
 write_csv(gme_merge, "~/DataCleaning\\GME_merged.csv")

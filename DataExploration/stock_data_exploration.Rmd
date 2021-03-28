@@ -1,0 +1,101 @@
+---
+title: "stock_data_exploration"
+author: "Rune Rathmann"
+date: "27/3/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We retrieve stock open and close prices for the identified stocks using the R library tidyquant and then using an API from the platform Tiingo to obtain hourly frequency stock data. This secondary data on open and close stock price will be used as independent variables to measure stock movement i.e., if a stock value increases or decreases on a given day within the specified time frame. We will then use this to train our model to predict whether the market in the following period will go up or down.
+
+The Stock data set contains stock price data for the period 08-03-2021 to 19-03-2021 for 10 different stocks. Primary variables of interest are the close and open price in order to classify the daily stock price development as going either up or down.
+
+We start by loading the stock data.
+```{r}
+library(readr)
+library(tseries)
+library(forecast)
+
+stockDataRaw <- read_csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/DataCollection/RawData/stockDataRaw.csv")[,-1]
+
+stockDataClean <- stockDataRaw[,c(2,1,3,4,5,6,7,8)]
+
+# View(stockDataClean)
+# colSums(is.na(stockDataClean))
+summary(stockDataClean)
+```
+
+An initial look at the stock data shows that we have 10 stocks for a time range of 2021-03-08 to 2021-03-19. The data set contains 8 variables:  
+  - timestamp: the timestamp of the recorded ticker data.
+  - symbol: the ticker symbol that represents the stock.
+  - open: the open price for period of the observation.
+  - high: the highest price traded during the period of observation.
+  - low:  the lowest price traded during the period of observation.
+  - close: the closing price for the period of the observation.
+  - volume: the volume of the stock traded during the period of the observation.
+  - stock_change: dummy variable for the change in the price during the period of observation - the difference between open and close - represented as going either up or down during the period (up represented by 1 and down by 0).
+  
+From a summary of the data we can see that the stock_change for the period has a mean of 0.533 which suggest that the stock more often goes up than it goes down - something to keep in mind when we evaluate our model.
+
+We also see that the average low price is 128 and the average high price is 132. This suggest some level of volatility in the stocks given the relative short time frame. We can also see that there is an indication of the stocks being significantly different prices across the differenct tickers, from looking at the minimum open price of 8.52 compared to the maximum open price of 708. This makes it reasonable to look at some of the stocks seperately.
+
+We can have a look at a box plot of the closing price of the different stocks to point out their differences better.
+
+```{r}
+attach(stockDataClean)
+unique(stockDataClean$symbol)
+stockDataClean <- filter(stockDataClean, symbol != "RE")
+boxplot(close ~ symbol, data = stockDataClean)
+```
+
+We see that TSLA is quite the outlier and so is GME. Both with great variation. Lets exclude them from the plot and have another look.
+
+```{r}
+library(stats)
+nooutliers <- as.data.frame(filter(stockDataClean, symbol != "GME", symbol != "TSLA", symbol != "RE"))
+boxplot(close ~ symbol, data = nooutliers)
+```
+
+After excluding the TSLA and GME stock we see a different picture. We see that AAPL is more the oulier but we also see it does not vary as much. We see that AMC, NIO, and TLRY varies more than the other stocks, at least from first appearances.
+
+To investigate the data further we will plot some of the stocks closing prices as timeseries. We select GME, AMC, TSLA, and TLRY to have some diversity in the types of companies we look at.
+
+**GME Time Series Plot**
+```{r}
+gme <- ts(filter(stockDataClean,symbol == "GME")$close)
+tsdisplay(gme)
+```
+
+From plotting the GME closing price time series we find the times series varies a lot over the period but seems to be somewhat more stable towards the end of the period than initially. We also see definite autocorrelation in the series.
+
+
+**AMC Time Series Plot**
+```{r}
+amc <- ts(filter(stockDataClean,symbol == "AMC")$close)
+tsdisplay(amc)
+```
+
+From looking at the time series plot of the AMC stock closing price we see a definite upward trend with clear autocorrelation.
+
+**TSLA Time Series Plot**
+```{r}
+tsla <- ts(filter(stockDataClean,symbol == "TSLA")$close)
+tsdisplay(tsla)
+```
+
+Looking at the TSLA stock we see that it have reach a sudden new high during the priod but also with a certain amount of variation for such a short period of time. We also see a slight degree of autocorrelation to take into consideration in our model prediction and  evaluation.
+
+
+**TLRY Time Series Plot**
+```{r}
+tlry <- ts(filter(stockDataClean,symbol == "TLRY")$close)
+tsdisplay(tlry)
+```
+
+In the series for the TLRY there is a clear upward trend in the stock price with some frequency spikes and relatively high variation during period of observation.
+
+In conclusion, most of the stocks prices have seen an upwards trend during the period, except for the GME stock which has had a slight downwards trend for most of the period. All the stocks also has high variation in common. The trend is a factor we have to consider during our evaluation in terms of considering the classification accuracy, specificity, and sensitivity.
+

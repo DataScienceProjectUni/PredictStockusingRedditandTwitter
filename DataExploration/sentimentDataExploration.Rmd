@@ -1,0 +1,55 @@
+---
+title: "sentiment_data_exploration"
+author: "Rune Rathmann"
+date: "28/3/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+After the sentiment analysis we ended up with 5 different data sets for the 5 stocks with the most data. 
+
+```{r}
+library(readr)
+library(tseries)
+library(forecast)
+
+text <- read_csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/GME_merged.csv")
+
+# View(text)
+# colSums(is.na(text))
+summary(text)
+```
+
+```{r}
+Sentiments <- set_names(text[,c(8,9,10,11,12,13)], c("positive","negative","litigious", "superfluous","constraining","uncertainty"))
+plot(ts(Sentiments), main = "GME Sentiment Plot" )
+```
+
+There seem to be no obvious trend in any of the sentiments for the gme data. There is however a slight increasing trend for uncertainty as sentiment. 
+
+Lets investigate a few other stocks.
+
+```{r}
+amc <- read_csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/AMC_merged.csv")
+s_amc <- set_names(amc[,c(8,9,10,11,12,13)], c("positive","negative","litigious", "superfluous","constraining","uncertainty"))
+plot(ts(s_amc), main = "AMC Sentiment Plot" )
+
+bb <- read_csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/BB_merged.csv")
+s_bb <- set_names(bb[,c(8,9,10,11,12,13)], c("positive","negative","litigious", "superfluous","constraining","uncertainty"))
+plot(ts(s_bb), main = "BB Sentiment Plot" )
+
+pltr <- read_csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/PLTR_merged.csv")
+s_pltr <- set_names(pltr[,c(8,9,10,11,12,13)], c("positive","negative","litigious", "superfluous","constraining","uncertainty"))
+plot(ts(s_pltr), main = "PLTR Sentiment Plot" )
+
+tsla <- read_csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/TSLA_merged.csv")
+s_tsla <- set_names(tsla[,c(8,9,10,11,12,13)], c("positive","negative","litigious", "superfluous","constraining","uncertainty"))
+plot(ts(s_tsla), main = "TSLA Sentiment Plot" )
+
+```
+
+What all the stocks seem to have in common is very high variation in sentiment scores, yet no clear trend as to one sentiment having a particular trend. If one was to point out a slight pattern showing, it could be that for GME, AMC, BB, and PLTR we see that uncertainty sentiment increases somewhat over the period of observation, relative to the other sentiments. Also, for TSLA you can argue that there is a slight positive trend towards the end of the period and also a slight increase for PLTR and BB. 

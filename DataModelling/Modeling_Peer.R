@@ -7,16 +7,92 @@ library("DataExplorer")
 library("caret")
 library(caTools)
 library(e1071)
-# Load data
-gme <- read.delim("~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/GME_merged.csv", sep="," )
 
+# Load data
+ gme <- read.delim("~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/GME_merged.csv", sep="," )
+
+#plot sentments over time (all sentiments)
+library(ggplot2)
+library(reshape2)
+
+
+gme.plot <- gme[,c(1, 8:13)]
+gme.plot[2:7] <- scale(gme.plot[2:7], scale = T, center = T)
+gme.plot <- melt(gme.plot)
+str(gme.plot)
+#create line plot for each column in data frame
+ggplot(gme.plot, aes(created_utc, value, group = variable)) +
+  geom_line(aes(colour = variable)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+#plot sentments over time (positive, negative, uncertainty
+library(ggplot2)
+library(reshape2)
+
+
+gme.plot <- gme[,c(1,5, 8:9,13)]
+gme.plot[2:5] <- scale(gme.plot[2:5], scale = T, center = T)
+gme.plot <- melt(gme.plot)
+str(gme.plot)
+#create line plot for each column in data frame
+ggplot(gme.plot, aes(created_utc, value, group = variable)) +
+  geom_line(aes(colour = variable, size = variable)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  scale_size_manual(values = c("close" = 1.5, "positive_percent" = 0.5, "negative_percent" = 0.5,"uncertainty_percent" = 0.5))
+
+
+#plot sentments over time (positive)
+library(ggplot2)
+library(reshape2)
+
+
+gme.plot <- gme[,c(1,5, 8)]
+gme.plot[2:3] <- scale(gme.plot[2:3], scale = T, center = T)
+gme.plot <- melt(gme.plot)
+str(gme.plot)
+#create line plot for each column in data frame
+ggplot(gme.plot, aes(created_utc, value, group = variable)) +
+  geom_line(aes(colour = variable, size = variable)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  scale_size_manual(values = c("close" = 1.5, "positive_percent" = 0.5))
+
+
+#plot sentments over time (negative)
+library(ggplot2)
+library(reshape2)
+
+
+gme.plot <- gme[,c(1,5, 9)]
+gme.plot[2:3] <- scale(gme.plot[2:3], scale = T, center = T)
+gme.plot <- melt(gme.plot)
+str(gme.plot)
+#create line plot for each column in data frame
+ggplot(gme.plot, aes(created_utc, value, group = variable)) +
+  geom_line(aes(colour = variable, size = variable)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  scale_size_manual(values = c("close" = 1.5, "negative_percent" = 0.5))
+
+#plot sentments over time (uncertainty)
+library(ggplot2)
+library(reshape2)
+
+
+gme.plot <- gme[,c(1,5, 13)]
+gme.plot[2:3] <- scale(gme.plot[2:3], scale = T, center = T)
+gme.plot <- melt(gme.plot)
+str(gme.plot)
+#create line plot for each column in data frame
+ggplot(gme.plot, aes(created_utc, value, group = variable)) +
+  geom_line(aes(colour = variable, size = variable)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  scale_size_manual(values = c("close" = 1.5, "uncertainty_percent" = 0.5))
 
 # Explore data
-str(gme)
+str(gme) 
 head(gme)
-gme$created_utc <- as.POSIXct(gme$created_utc, format, tryFormats= "%Y-%m-%d %H:%M:%OS")
+gme$created_utc <- as.POSIXct(gme$created_utc, format, tryFormats= "%Y-%m-%d %H:%M:%S", tz="UTC")
 
-# Removing the first column
+# Removing the first and lead column column
 gme <- gme[,-c(1,7)]
 str(gme)
 
@@ -76,8 +152,8 @@ table(gme$lead_movement)
 # Logistic model
 head(gme)
 ## Testing without the sentiments
-train <- gme[1:25,]
-test <- gme[26:47,]
+train <- gme[1:25, -c(1:5)]
+test <- gme[26:47, -c(1:5)]
 
 log.fit <- glm(lead_movement ~ ., family="binomial", data=train)
 
@@ -104,13 +180,14 @@ colAUC(log.pred, test$lead_movement, plotROC =T)
 
 set.seed(1)
 
-tune.linear <- tune(svm, lead_movement ~ ., data = train, kernel = "linear", ranges = list(cost = 10^seq(-2, 1, by = 0.25)))
+tune.linear <- tune(svm, lead_movement ~ ., data = train, kernel = "linear", ranges = list(cost = 10^seq(-2, 1, by = 0.25), gamma=c(0.5,1,2,3,4)))
 
 summary(tune.linear)
 tune.linear$best.parameters$cost
+tune.linear$best.parameters$gamma
 # at 0.2825788 cost, lowest error
 
-svm.linear <- svm(lead_movement ~ ., kernel = "linear", data = train, cost = tune.linear$best.parameter$cost)
+svm.linear <- svm(lead_movement ~ ., kernel = "linear", data = train, cost = tune.linear$best.parameter$cost, gamma=tune.linear$best.parameter$gamma)
 summary(svm.linear)
 
 
@@ -144,7 +221,7 @@ confusionMatrix(factor(ifelse(svm.nonlinear.pred > 0.5, "1", "0")),
 
 #ROC & AUC
 colAUC(svm.nonlinear.pred, test$lead_movement, plotROC =T)
-# only predicts 1s
+
 
 
 

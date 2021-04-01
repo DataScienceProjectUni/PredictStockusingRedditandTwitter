@@ -87,6 +87,8 @@ ggplot(gme.plot, aes(created_utc, value, group = variable)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   scale_size_manual(values = c("close" = 1.5, "uncertainty_percent" = 0.5))
 
+# DO GRANGER CORRELATION TEST
+
 # Explore data
 str(gme) 
 head(gme)

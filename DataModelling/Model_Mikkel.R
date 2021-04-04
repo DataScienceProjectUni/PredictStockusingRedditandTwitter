@@ -82,10 +82,42 @@ logist.fit <- glm(lead_movement ~ ., family="binomial", data=gme_base_train)
 summary(logist.fit)
 
 
-predictions1 <- predict(logist.fit, newdata=gme_base_test, type="class")
+predictions1 <- predict(logist.fit, newdata=gme_base_test, type="response")
 
 confusionMatrix(factor(ifelse(predictions1 > 0.5, "1", "0")), 
                 factor(gme_base_test$lead_movement), positive = "1") 
+
+
+
+# Testing using sentiments
+
+
+gme_train <- gme[1:25,]
+gme_test <- gme[26:47,]
+
+trControl <- trainControl(method = 'repeatedcv',
+                          number = 5,
+                          repeats =  5,
+                          search = 'random')
+
+
+logit.CV <- train(x= gme_train[,-13]  , y= gme_train$lead_movement, 
+                  method = 'glmnet',
+                  trControl = trControl,
+                  family = 'binomial' )
+
+
+
+logit.CV
+plot(logit.CV)
+
+varImp(logit.CV)
+
+predict(gme_test)
+
+
+
+?predict
 
 
 

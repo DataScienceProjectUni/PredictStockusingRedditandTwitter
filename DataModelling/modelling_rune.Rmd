@@ -1,0 +1,483 @@
+---
+title: "predictiveModelRune"
+author: "Rune Rathmann"
+date: "5/4/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("readr")
+library("lubridate")
+library("DataExplorer")
+library("caret")
+library(caTools)
+library(e1071)
+```
+
+```{r}
+# Data Loading
+
+## GME
+gme <- read.delim("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/GME_merged.csv", sep="," )
+
+## AMC
+amc <- read.delim("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/amc_merged.csv", sep="," )
+
+## BB
+bb <- read.delim("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/bb_merged.csv", sep="," )
+
+## PLTR
+pltr <- read.delim("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/pltr_merged.csv", sep="," )
+
+## TSLA
+tsla <- read.delim("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/tsla_merged.csv", sep="," )
+```
+
+
+# Data Description
+
+We start by having a look at the data that we will be working with.
+
+```{r}
+str(gme)
+```
+
+We find the data contains the parameters:
+  - created_utc: the timestamp of the begun hour for which the variables represents the sentiment and stock evolution during that hour. Note, hours outside of the stock opening hours are aggregated into one initial hour before next stock opening.
+  - open: the opening stock price of the hour.
+  - high: the highest stock price of the hour. 
+  - low: the lowest stock price of the hour.
+  - close: the closing stock price of the hour.
+  - volume: the volume of stocks traded in the hour.
+  - movement: the stock movement during the hour clasified by a dummy variable - 1 representing the market going up and 0 going down.
+  - positive_percent: the percentage of positive sentiment comments in the period of observation.
+  - negative_percent: the percentage of negative sentiment comments in the period of observation.
+  - litigious_percent: the percentage of litigiuous sentiment comments in the period of observation.
+  - superfluous_percent: the percentage of superfluous sentiment comments in the period of observation.
+  - constraining_percent: the percentage of constraining sentiment comments in the period of observation.
+  - uncertainty_percent: the percentage of uncertainty sentiment comments in the period of observation.
+  - lead_movement: the movement of the stock price in the next period.
+  
+The primary variables of interest for the modeling is the movement of the stock, as the depedent variable, and the sentiments as the explanatoryn variables. We may also consider other stock variables as control variables in the modeling process, but these are not the variables of focus.
+
+# Data Exploration
+
+We explore the primary variables of interest.
+
+We start by investigating the evolution of the sentiments across the period of observation along with the evolution of the movement variable, buy plotting them together.
+
+```{r}
+attach(gme)
+library(ggplot2)
+library(reshape2)
+
+gme.plot <- gme[,c(1, 7:13)]
+gme.plot[2:8] <- scale(gme.plot[2:8], scale = T, center = T)
+gme.plot <- melt(gme.plot)
+
+ggplot(gme.plot, aes(created_utc, value, group = variable)) +
+  geom_line(aes(colour = variable)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+We see certain patterns of correlation between positive sentiment and stock prices increasing, as well as negative sentiments and stock prices decreasing. There are also some indication of uncertainty sentiments having lagged effects on the stock movement, but it is not clear.
+
+Next, we investigate the sentiment distributions based on the classifier of the movement i.e., we investigate the sentiment distributions for the movement classifier 1 and 0, seperately.
+
+```{r}
+# We first split the data in to subsets based on the movement dummy variable
+gme0 <- subset(gme, movement==0)
+gme1 <- subset(gme, movement==1)
+```
+
+```{r}
+# Next, we investigate the summary parameters of the different variables.
+summary(gme0[8:13])
+```
+
+From looking at the movement = 0 observations alone, describing when the stock price went down, we find that the mean percentage of:  
+  - positive sentiment is 31.7%;  
+  - negative sentiment is 41,5%;  
+  - litigious sentiment is 3.0%; 
+  - superfluous sentiment is 2.4%; 
+  - constraining sentiment is 0.4%; 
+  - and uncertainty sentiment is 22.3%. 
+  
+```{r}
+summary(gme1[8:13])
+```
+
+From looking at the movement = 1 observations alone, describing when the stock price went up, we find that the mean percentage of:  
+  - positive sentiment is 33.8%;  
+  - negative sentiment is 39.3%;  
+  - litigious sentiment is 2.2%; 
+  - superfluous sentiment is 2.2%; 
+  - constraining sentiment is 0.3%; 
+  - and uncertainty sentiment is 21.2%.
+  
+Although the differences may seem small there are still some clear pattern it seems.
+
+For the obeservations where the stock market has gone up the uncertainty, constraining, and negative sentimment takes up less share of the total sentiment and positive sentiments takes up more share. This is a rather clear indication of correlation, although not causatiion. This does however, prove the case that we should analyse whether a predivtive model has an accuracy better than the 50/50 chance baseline.
+
+It might also be relevant to do the same exploration as above, for the lead_movement variable.
+
+```{r}
+# We first split the data in to subsets based on the lead_movement dummy variable
+gmel0 <- subset(gme, lead_movement==0)
+gmel1 <- subset(gme, lead_movement==1)
+```
+
+```{r}
+# Next, we investigate the summary parameters of the different variables.
+summary(gmel0[8:13])
+```
+
+From looking at the lead_movement = 0 observations alone, describing when the stock price went down one period after the period of observation, we find that the mean percentage of:  
+  - positive sentiment is 31.6%;  
+  - negative sentiment is 41,3%;  
+  - litigious sentiment is 3.2%; 
+  - superfluous sentiment is 2.5%; 
+  - constraining sentiment is 0.5%; 
+  - and uncertainty sentiment is 21.0%. 
+  
+```{r}
+summary(gmel1[8:13])
+```
+
+From looking at the lead_movement = 1 observations alone, describing when the stock price went up one period after the period of observation, we find that the mean percentage of:  
+  - positive sentiment is 33.6%;  
+  - negative sentiment is 40.0%;  
+  - litigious sentiment is 3.0%; 
+  - superfluous sentiment is 2.0%; 
+  - constraining sentiment is 0.3%; 
+  - and uncertainty sentiment is 21.2%.
+  
+Although the differences may seem small there are still some clear pattern it seems.
+
+The postive sentiments are clearly higher for the observations with lead_movement = 1 and the negative sentiments are clearly lower. In conclusion there is definately correlation between the sentiment in a period and the stock price movement in the following period, providing some early signs of causation.
+
+# Modeling
+```{r}
+# we start by segmenting the data into a train and test data set based on a 60/40 ratio
+train <- gme[1:25,]
+test <- gme[26:47,]
+```
+
+## Logistic Regression Movement Model
+```{r}
+move.log <- glm(movement ~ ., family="binomial", data=train[,c(7:13)])
+summary(move.log)
+```
+
+We find that none of the sentiment variables are actually statistically significant in relation to the movement of the stock price.
+
+## Logistic Regression Lead Movement Model
+```{r}
+lead.log <- glm(lead_movement ~ ., family="binomial", data=train[,c(8:14)])
+summary(lead.log)
+```
+
+We find that none of the sentiment variables are actually statistically significant in relation to the lead_movement of the stock price.
+
+## Prediction Movement Model
+
+```{r}
+# training set prediction
+pred <- predict(move.log, newdata=train[,c(7:13)], type="response")
+
+confusionMatrix(factor(ifelse(pred > 0.5, "1", "0")), 
+                factor(train[,c(7:13)]$movement), positive = "1") 
+```
+
+We find that the accuracy for the prediction model on the training set data is 68%.
+
+We then predict and determine the accuracy of the model based on the test data set.
+
+```{r}
+# test set prediction
+pred <- predict(move.log, newdata=test[,c(7:13)], type="response")
+
+confusionMatrix(factor(ifelse(pred > 0.5, "1", "0")), 
+                factor(test[,c(7:13)]$movement), positive = "1") 
+```
+
+We find the prediction accuracy on the test data set is 50%.
+
+## Prediction Lead Movement Model
+```{r}
+# training set prediction
+pred <- predict(lead.log, newdata=train[,c(8:14)], type="response")
+
+confusionMatrix(factor(ifelse(pred > 0.5, "1", "0")), 
+                factor(train[,c(8:14)]$lead_movement), positive = "1") 
+```
+
+We find that the accuracy for the prediction model on the training set data is 76%.
+
+We then predict and determine the accuracy of the model based on the test data set.
+
+```{r}
+# test set prediction
+pred <- predict(lead.log, newdata=test[,c(8:14)], type="response")
+
+confusionMatrix(factor(ifelse(pred > 0.5, "1", "0")), 
+                factor(test[,c(8:14)]$lead_movement), positive = "1") 
+
+```
+
+We find the prediction model has an accuracy of 59.1% and predicts 6 negatives and 7 positives, an almost equal distribution which also diminishes the risk of the model being accurate because it only predicts one outcome all the time and that outcome being the general trend.
+
+### ROC,AUC and RMSE
+```{r}
+colAUC(ifelse(pred>0.5, 1,0), test$lead_movement, plotROC =T)
+```
+
+Having concluded that the prediction model for the lead_movement of the stock is a better model than the baseline we can attempt to create a model of prediction which is not based on SoMe sentiments but rather a pure time series prediction model such as an ARIMA.
+
+```{r}
+library(tseries)
+library(forecast)
+
+train_arima <- auto.arima(ts(train$lead_movement))
+fcast <- forecast(train_arima,h = length(test$lead_movement))
+```
+
+We calculate the RMSE of the ARIMA forecast.
+
+```{r}
+rmse(test$lead_movement,fcast$x)
+```
+
+We find that the ARIMA model has an RMSE of 0.8.
+
+```{r}
+colAUC(as.matrix(fcast$x)[1:22], as.matrix(test$lead_movement), plotROC =T)
+```
+
+We just need to determine the RMSE of the logistic regression predictions.
+
+```{r}
+# install.packages("Metrics")
+library(Metrics)
+
+rmse(pred, test$lead_movement)
+```
+
+The RMSE of the prediction model for lead movement is 0.519.
+
+We find that the RMSE of the ARIMA model is actually worse than the RMSE of the logistic regression prediction model i.e, the prediction model is better than an ARIMA time series forecast model.
+
+## Random Forest Lead Movement Model
+```{r}
+library(randomForest)
+rf_lead <- randomForest(lead_movement ~ ., data = train[,c(8:14)])
+```
+
+```{r}
+rf_pred <- predict(rf_lead, newdata = test[,c(8:14)], type = "response")
+
+confusionMatrix(factor(ifelse(rf_pred > 0.5, "1", "0")), 
+                factor(test[,c(8:14)]$lead_movement), positive = "1") 
+```
+
+```{r}
+importance(rf_lead)
+```
+
+```{r}
+varImpPlot(rf_lead)
+```
+
+
+## Random Forest Bagging Lead Movement Model
+
+```{r}
+library(randomForest)
+set.seed(123)
+bag_lead <- randomForest(lead_movement ~ ., data = train[,c(8:14)], mtry = 6, ntree = 500, importance = T)
+```
+
+```{r}
+bag_pred <- predict(bag_lead, newdata = test[,c(8:14)], type = "response")
+
+confusionMatrix(factor(ifelse(bag_pred > 0.5, "1", "0")), 
+                factor(test[,c(8:14)]$lead_movement), positive = "1") 
+
+sqrt(mean((test[,c(8:14)]$lead_movement - bag_pred)^2))
+```
+
+Bagging model acuracy is below 50% however the RMSE is better than the other models. 
+
+```{r}
+importance(bag_lead)
+```
+
+```{r}
+varImpPlot(bag_lead)
+```
+
+
+## Prophet Model
+
+```{r}
+# install.packages("prophet")
+library(prophet)
+
+df <- train[,c(1,14)]
+
+# The BoxCox.lambda() function will choose a value of lambda
+lam = BoxCox.lambda(df$lead_movement)
+df$y = BoxCox(df$lead_movement, lam)
+df.m <- melt(df, measure.vars=c("lead_movement", "y"))
+
+df <- as.data.frame(df)
+df <- cbind("ds" = paste(substr(df[,1],1,10)," ",substr(df[,1],12,19)), "y" = df$lead_movement)
+
+m <- prophet(as.data.frame(df))
+```
+
+
+```{r}
+library(dplyr)
+
+future <- make_future_dataframe(m, periods = 200, freq = 60 * 60)
+fcst <- predict(m, future)
+plot(m, fcst)
+
+fcst <- filter(fcst,(between(hour(as_datetime(fcst$ds)),14,20)))
+fcst <- filter(fcst,(between(date(as_datetime(fcst$ds)),as_date("2021-03-12"),as_date("2021-03-17"))))
+fcst2 <- fcst[-c(1,5:(7+11),27,34,40:41),]
+
+```
+
+```{r}
+confusionMatrix(factor(ifelse(fcst2$yhat > 0.5, "1", "0")), 
+                factor(test[,c(8:14)]$lead_movement), positive = "1") 
+```
+
+The accuracy of the prophet time series regression model is 59.1% which the the same accuracy as the logistic regression prediction model however, it has a sensitivity of 0, suggesting that the high accuracy of prediction, comes from the fact that the model only predicts negatives and no positives. This is obviously not a good model in comparison to the log reg model given the false negative rate.
+
+## Support Vector Machines
+
+### SVM Linear
+```{r}
+library(e1071)
+library(ISLR)
+
+svm.linear <- svm(lead_movement ~., data = train[,c(8:14)], kernel = "linear")
+summary(svm.linear)
+```
+
+**Training Set Prediction**
+```{r}
+train.pred <- predict(svm.linear, train[,c(8:14)])
+cm_train <- table(train[,c(8:14)]$lead_movement, ifelse(train.pred>0.5,1,0))
+```
+
+Sensitivity = TP/(TP + FN) = (Number of true positive assessment)/(Number of all positive assessment)  
+
+Specificity = TN/(TN + FP) = (Number of true negative assessment)/(Number of all negative assessment)  
+
+Accuracy = (TN + TP)/(TN+TP+FN+FP) = (Number of correct assessments)/Number of all assessments)  
+
+```{r}
+TP <- cm_train[1,1]
+FN <- cm_train[2,1]
+FP <- cm_train[1,2]
+TN <- cm_train[2,2]
+
+(TN + TP)/(TN+TP+FN+FP)
+```
+
+
+**Test Set Prediction**
+```{r}
+test.pred <- predict(svm.linear, test[,c(8:14)])
+cm_test <- table(test[,c(8:14)]$lead_movement, ifelse(test.pred>0.5,1,0))
+```
+
+```{r}
+TP <- cm_test[1,1]
+FN <- cm_test[2,1]
+FP <- cm_test[1,2]
+TN <- cm_test[2,2]
+
+(TN + TP)/(TN+TP+FN+FP)
+```
+
+```{r}
+sqrt(mean((test[,c(8:14)]$lead_movement - test.pred)^2))
+```
+
+The test set accuracy is 54.6% which is lower than the logistic regression model. The RMSE is 0.663 which is also higher than the RMSE of the logistic regression model.
+
+## SVM Radial
+
+```{r}
+library(e1071)
+library(ISLR)
+
+svm.radial <- svm(lead_movement ~., data = train[,c(8:14)], kernel = "radial")
+summary(svm.radial)
+```
+
+**Training Set Prediction**
+```{r}
+train.pred <- predict(svm.radial, train[,c(8:14)])
+cm_train <- table(train[,c(8:14)]$lead_movement, ifelse(train.pred>0.5,1,0))
+```
+
+Sensitivity = TP/(TP + FN) = (Number of true positive assessment)/(Number of all positive assessment)  
+
+Specificity = TN/(TN + FP) = (Number of true negative assessment)/(Number of all negative assessment)  
+
+Accuracy = (TN + TP)/(TN+TP+FN+FP) = (Number of correct assessments)/Number of all assessments)  
+
+```{r}
+TP <- cm_train[1,1]
+FN <- cm_train[2,1]
+FP <- cm_train[1,2]
+TN <- cm_train[2,2]
+
+(TN + TP)/(TN+TP+FN+FP)
+```
+
+Training set accuracy is 88%.
+
+**Test Set Prediction**
+```{r}
+test.pred <- predict(svm.radial, test[,c(8:14)])
+cm_test <- table(test[,c(8:14)]$lead_movement, ifelse(test.pred>0.5,1,0))
+```
+
+```{r}
+TP <- cm_test[1,1]
+FN <- cm_test[2,1]
+FP <- cm_test[1,2]
+TN <- cm_test[2,2]
+
+(TN + TP)/(TN+TP+FN+FP)
+```
+
+```{r}
+sqrt(mean((test[,c(8:14)]$lead_movement - test.pred)^2))
+```
+
+The test set accuracy is 68.2% which is higher than the logistic regression model. The RMSE is 0.488 which is also lower than the RMSE of the logistic regression model.
+
+
+# Findings
+
+We find that the SVM with a radial kernel is the best model for predicting the lead movement of the stock i.e., the stock price movement of the next period. The radial kernel model as an accuracy of 68.2% and an RMSE of 0.488. This indicates a relatively good prediction model and could be used to obtain arbitrage for ones stocks.
+
+
+# Conclusion
+
+# Recommendations
+
+
+

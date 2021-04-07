@@ -96,22 +96,15 @@ gme.plot[2:8] <- scale(gme.plot[2:8], scale = T, center = T)
 gme.plot <- melt(gme.plot)
 gme.plot[,2] <- as.character(gme.plot[,2])
 
-vegalite(viewport_height=500) %>%
-  cell_size(400, 400) %>%
-  add_data(gme.plot) %>% 
-  encode_x("create_utc", "temporal") %>% 
-  encode_y("value", "quantitative") %>% 
-  encode_color("variable", "nominal") %>% 
-  mark_line()
-
-reticulate::use_python("/Users/peerwoyzcechowski/opt/anaconda3/envs/p37env/bin/python", required = TRUE)
-reticulate::use_condaenv("p37env")
+reticulate::use_python("/Users/peerwoyzcechowski/venv38/bin/python", required = TRUE)
+reticulate::use_condaenv("venv38")
 install.packages("altair")
 library("altair")
+install_altair()
 
 chart <- 
   alt$Chart(gme.plot())$
-  mark_point()$
+  mark_line()$
   encode(
     x = alt$X("created_utc", type = "temporal"),
     y = alt$Y("value", type = "quantitative"),

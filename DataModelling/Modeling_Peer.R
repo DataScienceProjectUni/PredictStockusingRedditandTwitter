@@ -11,6 +11,14 @@ library(e1071)
 # Load data
  gme <- read.delim("~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/GME_merged.csv", sep="," )
 
+ #correlation matrix
+ library(corrplot)
+ library(RColorBrewer)
+ M <-cor(gme[2:13])
+ corrplot(M, type="upper", order="hclust",
+          col=brewer.pal(n=8, name="RdYlBu"))
+ 
+ 
 #plot sentments over time (all sentiments)
 library(ggplot2)
 library(reshape2)
@@ -96,9 +104,10 @@ library(reshape2)
 
 
 gme.plot <- gme[,c(1,5, 8:9,13)]
-gme.plot[3:5] <- scale(gme.plot[3:5], scale = T, center = T)
-gme.plot[,"Scaled_close"] <- scale(gme.plot[,2], scale = T, center = T)
-gme.plot <- melt(gme.plot)
+gme.plot[2:5] <- scale(gme.plot[2:5], scale = T, center = T)
+#gme.plot[,"Scaled_close"] <- scale(gme.plot[,2], scale = T, center = T)
+#gme.plot <- melt(gme.plot)
+
 
 chart <- 
   alt$Chart(gme.plot)$
@@ -109,34 +118,6 @@ chart <-
     color = alt$Color("variable", type = "nominal")
     )
 vegawidget(chart)
-
-library("altair")
-vega_data <- import_vega_data()
-import_vega_data()
-
-
-
-# layered example
-source = data.seattle_weather()
-
-base = alt.Chart(source).encode(
-  alt.X('month(date):T', axis=alt.Axis(title=None))
-)
-
-area = base.mark_area(opacity=0.3, color='#57A44C').encode(
-  alt.Y('average(temp_max)',
-        axis=alt.Axis(title='Avg. Temperature (°C)', titleColor='#57A44C')),
-  alt.Y2('average(temp_min)')
-)
-
-line = base.mark_line(stroke='#5276A7', interpolate='monotone').encode(
-  alt.Y('average(precipitation)',
-        axis=alt.Axis(title='Precipitation (inches)', titleColor='#5276A7'))
-)
-
-alt.layer(area, line).resolve_scale(
-  y = 'independent'
-)
 
 # DO GRANGER CORRELATION TEST
 

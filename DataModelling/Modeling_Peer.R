@@ -87,6 +87,49 @@ ggplot(gme.plot, aes(created_utc, value, group = variable)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   scale_size_manual(values = c("close" = 1.5, "uncertainty_percent" = 0.5))
 
+# PLOTTING USINF VEGALITE
+#devtools::install_github("hrbrmstr/vegalite")
+library(vegalite)
+
+gme.plot <- gme[,c(1,5, 8:13)]
+gme.plot[2:8] <- scale(gme.plot[2:8], scale = T, center = T)
+gme.plot <- melt(gme.plot)
+gme.plot[,2] <- as.character(gme.plot[,2])
+
+vegalite(viewport_height=500) %>%
+  cell_size(400, 400) %>%
+  add_data(gme.plot) %>% 
+  encode_x("create_utc", "temporal") %>% 
+  encode_y("value", "quantitative") %>% 
+  encode_color("variable", "nominal") %>% 
+  mark_line()
+
+reticulate::use_python("/Users/peerwoyzcechowski/opt/anaconda3/envs/p37env/bin/python", required = TRUE)
+reticulate::use_condaenv("p37env")
+install.packages("altair")
+library("altair")
+
+chart <- 
+  alt$Chart(gme.plot())$
+  mark_point()$
+  encode(
+    x = alt$X("created_utc", type = "temporal"),
+    y = alt$Y("value", type = "quantitative"),
+    color = alt$Color("variable", type = "nominal")
+    )
+
+vegawidget(chart)
+
+
+csv <- read.csv("https://vega.github.io/vega-editor/app/data/stocks.csv")
+vegalite(viewport_height=500) %>%
+  cell_size(400, 400) %>%
+  add_data("https://vega.github.io/vega-editor/app/data/stocks.csv") %>%
+  encode_x("date", "temporal") %>%
+  encode_y("price", "quantitative") %>%
+  encode_color("symbol", "nominal") %>%
+  mark_line()
+
 # DO GRANGER CORRELATION TEST
 
 # Explore data

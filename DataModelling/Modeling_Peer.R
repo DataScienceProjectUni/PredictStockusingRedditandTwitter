@@ -88,40 +88,55 @@ ggplot(gme.plot, aes(created_utc, value, group = variable)) +
   scale_size_manual(values = c("close" = 1.5, "uncertainty_percent" = 0.5))
 
 # PLOTTING USINF VEGALITE
-#devtools::install_github("hrbrmstr/vegalite")
-library(vegalite)
-
-gme.plot <- gme[,c(1,5, 8:13)]
-gme.plot[2:8] <- scale(gme.plot[2:8], scale = T, center = T)
-gme.plot <- melt(gme.plot)
-gme.plot[,2] <- as.character(gme.plot[,2])
-
 reticulate::use_python("/Users/peerwoyzcechowski/venv38/bin/python", required = TRUE)
 reticulate::use_condaenv("venv38")
 install.packages("altair")
 library("altair")
-install_altair()
+library(reshape2)
+
+
+gme.plot <- gme[,c(1,5, 8:9,13)]
+gme.plot[3:5] <- scale(gme.plot[3:5], scale = T, center = T)
+gme.plot[,"Scaled_close"] <- scale(gme.plot[,2], scale = T, center = T)
+gme.plot <- melt(gme.plot)
 
 chart <- 
-  alt$Chart(gme.plot())$
+  alt$Chart(gme.plot)$
   mark_line()$
   encode(
-    x = alt$X("created_utc", type = "temporal"),
-    y = alt$Y("value", type = "quantitative"),
+    x = alt$X("yearmonthdatehoursminutes(created_utc):O", title = "Hour of Day"),
+    y = alt$Y("value:Q", title ="Scaled Values"),
     color = alt$Color("variable", type = "nominal")
     )
-
 vegawidget(chart)
 
+library("altair")
+vega_data <- import_vega_data()
+import_vega_data()
 
-csv <- read.csv("https://vega.github.io/vega-editor/app/data/stocks.csv")
-vegalite(viewport_height=500) %>%
-  cell_size(400, 400) %>%
-  add_data("https://vega.github.io/vega-editor/app/data/stocks.csv") %>%
-  encode_x("date", "temporal") %>%
-  encode_y("price", "quantitative") %>%
-  encode_color("symbol", "nominal") %>%
-  mark_line()
+
+
+# layered example
+source = data.seattle_weather()
+
+base = alt.Chart(source).encode(
+  alt.X('month(date):T', axis=alt.Axis(title=None))
+)
+
+area = base.mark_area(opacity=0.3, color='#57A44C').encode(
+  alt.Y('average(temp_max)',
+        axis=alt.Axis(title='Avg. Temperature (°C)', titleColor='#57A44C')),
+  alt.Y2('average(temp_min)')
+)
+
+line = base.mark_line(stroke='#5276A7', interpolate='monotone').encode(
+  alt.Y('average(precipitation)',
+        axis=alt.Axis(title='Precipitation (inches)', titleColor='#5276A7'))
+)
+
+alt.layer(area, line).resolve_scale(
+  y = 'independent'
+)
 
 # DO GRANGER CORRELATION TEST
 

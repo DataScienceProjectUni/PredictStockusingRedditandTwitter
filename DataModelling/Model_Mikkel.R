@@ -15,7 +15,7 @@ str(gme)
 gme$created_utc <- as.POSIXct(gme$created_utc, format, tryFormats= "%Y-%m-%d %H:%M:%OS")
 
 # Removing the first column
-gme <- gme[,-1]
+gme <- gme[,-c(1:6)]
 
 
 ##### 2.3 Missing treatment
@@ -29,22 +29,22 @@ is.na.data.frame(gme)
 gme <- gme[-48,]
 
 summary(gme)
-# There can be obserserved some big differences in the deistributions of sentiment between the different observations.
+# There can be observed some big differences in the distributions of sentiment between the different observations.
 
 
 plot_histogram(gme)
-# Genrelly our numeric data looks normally distibuted
+# Generally our numeric data looks normally distributed
 
 
-plot_bar(gme1$lead_movement)
+plot_bar(gme$lead_movement)
 # Fairly equal distribution of 1 and 0 of the lead movement, which is what we are trying to predict
 
 
 
 
 
-gme0 <- subset(gme1, lead_movement==0)
-gme1 <- subset(gme1, lead_movement==1)
+gme0 <- subset(gme, lead_movement==0)
+gme1 <- subset(gme, lead_movement==1)
 
 summary(gme0)
 summary(gme1)
@@ -65,67 +65,97 @@ table(gme$lead_movement)
 #  0    1 
 #  23   24 
 
-# Naive guessing 1 = 0.5106383
+# Naive guessing 1 = 0.5106383  (24/(24+23))
 # This will be the baseline of our models
 
+
+
+# Splitting the data in train, validation and test sets
+
+
+gme$lead_movement <- as.factor(gme$lead_movement)
+
+train <- gme[1:34,]
+
+test <- gme[35:47,]
+
+
+# setting up a time series CV 
+
+trControl <- trainControl(method = 'timeslice',
+                          initialWindow = 8,
+                          horizon = 6,
+                          fixedWindow = FALSE
+                          )
 
 
 
 # Logistic model
 
-## Testing without the sentiments
-gme_base_train <- gme[1:25,c(1:6, 13)]
-gme_base_test <- gme[26:47, c(1:6, 13)]
 
-logist.fit <- glm(lead_movement ~ ., family="binomial", data=gme_base_train)
-
-summary(logist.fit)
-
-
-predictions1 <- predict(logist.fit, newdata=gme_base_test, type="response")
-
-confusionMatrix(factor(ifelse(predictions1 > 0.5, "1", "0")), 
-                factor(gme_base_test$lead_movement), positive = "1") 
-
-
-
-# Testing using sentiments
-
-
-gme_train <- gme[1:25,]
-gme_test <- gme[26:47,]
-
-trControl <- trainControl(method = 'repeatedcv',
-                          number = 5,
-                          repeats =  5,
-                          search = 'random')
-
-
-logit.CV <- train(x= gme_train[,-13]  , y= gme_train$lead_movement, 
+logit.CV <- train(lead_movement ~ ., data = train,
                   method = 'glmnet',
                   trControl = trControl,
-                  family = 'binomial' )
+                  family = 'binomial', 
+                  metric = "Accuracy",
+                  tuneLength= 5)
+
+
+# Making predictions on test data
+
+pred.log <- predict(logit.CV, newdata=test)
+
+
+confusionMatrix(
+  pred.log, 
+  test$lead_movement)
 
 
 
-logit.CV
-plot(logit.CV)
-
-varImp(logit.CV)
-
-predict(gme_test)
-
-
-
-?predict
 
 
 
 # Support Vector machines
 
+library("kernlab")
+
+
+SVM.CV <- train(lead_movement ~ ., data = train,
+                   method = "svmLinear",
+                   trControl = trControl,
+                   family = 'binomial', 
+                   metric = "Accuracy",
+                   tuneLength= 5)
 
 
 
+# Making predictions on test data
+
+pred.svm <- predict(SVM.CV, newdata=test)
+
+
+confusionMatrix(
+  pred.svm,
+  test$lead_movement)
+
+
+
+# Radial kernel SVM
+
+RK.SVM.CV <- train(lead_movement ~ ., data = train,
+                method = "svmRadial",
+                trControl = trControl,
+                family = 'binomial', 
+                metric = "Accuracy",
+                tuneLength= 5)
+
+
+pred.rk.svm <- predict(RK.SVM.CV, newdata=test)
+
+
+confusionMatrix(
+  pred.rk.svm,
+  test$lead_movement)
 
 
 
@@ -133,10 +163,22 @@ predict(gme_test)
 
 # Random Forest
 
+library("rpart")
+
+RF.CV <- train(lead_movement ~ ., data = train,
+                             method = "rf",
+                             trControl = trControl,
+                             family = 'binomial', 
+                             metric = "Accuracy",
+                             tuneLength= 5)
 
 
+pred.rf <- predict(RF.CV, newdata=test)
 
 
+confusionMatrix(
+  pred.rf,
+  test$lead_movement)
 
 
 
@@ -147,25 +189,47 @@ predict(gme_test)
 # Extreme Gradient Boosting 
 
 
+XGB.CV <- train(lead_movement ~ ., data = train, 
+                method = 'xgbTree',
+                trControl = trControl,
+                family = 'binomial', 
+                metric = "Accuracy",
+                tuneLength= 5)
+
+
+pred.xgb <- predict(XGB.CV, newdata=test)
+
+
+confusionMatrix(
+  pred.xgb,
+  test$lead_movement)
 
 
 
 
+# Comparing the models
+
+resamps <- resamples(list(log = logit.CV,
+                          rf = RF.CV,
+                          svm = SVM.CV,
+                          rk.svm = RK.SVM.CV,
+                          xgb = XGB.CV))
+
+
+# Table
+
+ss <- summary(resamps)
+
+knitr::kable(ss[[3]]$Accuracy)
 
 
 
+# Plotting
 
-# Neural Networks
+library(lattice)
 
-
-
-
-
-
-
-
-
-
+trellis.par.set(caretTheme())
+dotplot(resamps, metric = "Accuracy")
 
 
 

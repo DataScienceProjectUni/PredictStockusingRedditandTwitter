@@ -8,14 +8,24 @@ library("caret")
 
 # Load data
 gme <- read.delim("~/R-data/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/GME_merged.csv", sep="," )
+amc <- read.delim("~/R-data/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/AMC_merged.csv", sep="," )
+bb <- read.delim("~/R-data/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/BB_merged.csv", sep="," )
+pltr <- read.delim("~/R-data/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/PLTR_merged.csv", sep="," )
+tsla <- read.delim("~/R-data/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/TSLA_merged.csv", sep="," )
+
+# Tickers <- 
 
 
 # Explore data
 str(gme)
 gme$created_utc <- as.POSIXct(gme$created_utc, format, tryFormats= "%Y-%m-%d %H:%M:%OS")
 
-# Removing the first column
-gme <- gme[,-c(1:6)]
+# Removing the first columns with
+gme <- gme[,-c(1:7)]
+amc <- amc[,-c(1:7)]
+bb <- bb[,-c(1:7)]
+pltr <- pltr[,-c(1:7)]
+tsla <- tsla[,-c(1:7)]
 
 
 ##### 2.3 Missing treatment
@@ -27,6 +37,10 @@ is.na.data.frame(gme)
 # I will remove that observation from the data frame as it can't be used for any predictions. 
 
 gme <- gme[-48,]
+amc <- amc[-48,]
+bb <- bb[-48,]
+pltr <- pltr[-48,]
+tsla <- tsla[-48,]
 
 summary(gme)
 # There can be observed some big differences in the distributions of sentiment between the different observations.
@@ -72,13 +86,50 @@ table(gme$lead_movement)
 
 # Splitting the data in train, validation and test sets
 
-
 gme$lead_movement <- as.factor(gme$lead_movement)
+amc$lead_movement <- as.factor(amc$lead_movement)
+bb$lead_movement <- as.factor(bb$lead_movement)
+pltr$lead_movement <- as.factor(pltr$lead_movement)
+tsla$lead_movement <- as.factor(tsla$lead_movement)
 
-train <- gme[1:34,]
 
-test <- gme[35:47,]
 
+# lag 1
+library("dplyr")
+
+gme$pos_lag1 <- dplyr::lag(gme[ , 1], 1L)
+gme$sup_lag1 <- dplyr::lag(gme[ , 4], 1L)
+
+
+# lag 2
+gme$pos_lag2 <- dplyr::lag(gme[ , 1], 2L)
+gme$sup_lag2 <- dplyr::lag(gme[ , 4], 2L)
+
+
+# lag 3
+gme$pos_lag3 <- dplyr::lag(gme[ , 1], 3L)
+gme$sup_lag3 <- dplyr::lag(gme[ , 4], 3L)
+
+
+#gme$lag2 <- dplyr::lag(gme[ , 1:6], 2L)
+#gme$lag3 <- dplyr::lag(gme[ , 1:6], 3L)
+
+
+
+# Splitting the data in 70% training and 30% testing
+
+train.gme <- gme[4:32,]
+train.amc <- amc[1:32,]
+train.tsla <- tsla[1:32,]
+train.bb <- bb[1:32,]
+train.pltr <- pltr[1:32,]
+
+
+test.gme <- gme[33:47,]
+test.amc <- amc[33:47,]
+test.tsla <- tsla[33:47,]
+test.bb <- bb[33:47,]
+test.pltr <- pltr[33:47,]
 
 # setting up a time series CV 
 
@@ -90,11 +141,68 @@ trControl <- trainControl(method = 'timeslice',
 
 
 
+
+
+
+********************************** Models GME *************************************
+
 # Logistic model
 
-
-logit.CV <- train(lead_movement ~ ., data = train,
+set.seed(2)
+logit.CV <- train(lead_movement ~ ., data = train.gme,
                   method = 'glmnet',
+                  trControl = trControl,
+                  family = 'binomial', 
+                  metric = "Accuracy",
+                  tuneLength= 5)
+
+
+varImp(logit.CV)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Making predictions on test data
+
+pred.log <- predict(logit.CV, newdata=test.gme)
+
+
+cm.log <- confusionMatrix(
+          pred.log, 
+         test$lead_movement)
+
+varImp(logit.CV)
+
+# Can see that movement doesn't make sense to include in our model as it just makes noise
+Overall
+constraining_percent 100.0000
+litigious_percent     13.6368
+superfluous_percent   10.7325
+positive_percent       8.7572
+negative_percent       0.6823
+uncertainty_percent    0.0000
+movement               0.0000
+
+
+
+
+
+
+# Step GLM
+
+set.seed(2)
+STEP.GLM.CV <- train(lead_movement ~ ., data = train.gme,
+                  method = 'glmStepAIC',
                   trControl = trControl,
                   family = 'binomial', 
                   metric = "Accuracy",
@@ -103,12 +211,14 @@ logit.CV <- train(lead_movement ~ ., data = train,
 
 # Making predictions on test data
 
-pred.log <- predict(logit.CV, newdata=test)
+STEP.GLM.CV$finalModel
+
+pred.STEP <- predict(STEP.GLM.CV, newdata=test)
 
 
-confusionMatrix(
-  pred.log, 
-  test$lead_movement)
+cm.step.glm <- confusionMatrix(
+               pred.STEP, 
+               test$lead_movement)
 
 
 
@@ -117,10 +227,8 @@ confusionMatrix(
 
 # Support Vector machines
 
-library("kernlab")
-
-
-SVM.CV <- train(lead_movement ~ ., data = train,
+set.seed(1)
+SVM.CV <- train(lead_movement ~ ., data = train.gme,
                    method = "svmLinear",
                    trControl = trControl,
                    family = 'binomial', 
@@ -134,15 +242,19 @@ SVM.CV <- train(lead_movement ~ ., data = train,
 pred.svm <- predict(SVM.CV, newdata=test)
 
 
-confusionMatrix(
-  pred.svm,
-  test$lead_movement)
+cm.svm <- confusionMatrix(
+           pred.svm,
+           test$lead_movement)
+
+
+
 
 
 
 # Radial kernel SVM
 
-RK.SVM.CV <- train(lead_movement ~ ., data = train,
+set.seed(1)
+RK.SVM.CV <- train(lead_movement ~ ., data = train.gme,
                 method = "svmRadial",
                 trControl = trControl,
                 family = 'binomial', 
@@ -153,9 +265,35 @@ RK.SVM.CV <- train(lead_movement ~ ., data = train,
 pred.rk.svm <- predict(RK.SVM.CV, newdata=test)
 
 
-confusionMatrix(
-  pred.rk.svm,
+cm.svm.rk <- confusionMatrix(
+            pred.rk.svm,
+             test$lead_movement)
+
+
+
+
+
+
+
+# SVM polynomial
+
+set.seed(2)
+SVM.POLY.CV <- train(lead_movement ~ ., data = train.gme, 
+                method = 'svmPoly',
+                trControl = trControl,
+                family = 'binomial', 
+                metric = "Accuracy",
+                tuneLength= 5)
+
+
+pred.svm.poly <- predict(SVM.POLY.CV, newdata=test.gme)
+
+
+cm.svm.poly <- confusionMatrix(
+  pred.svm.poly,
   test$lead_movement)
+
+
 
 
 
@@ -165,20 +303,44 @@ confusionMatrix(
 
 library("rpart")
 
-RF.CV <- train(lead_movement ~ ., data = train,
+set.seed(1)
+RF.CV <- train(lead_movement ~ ., data = train.gme,
                              method = "rf",
                              trControl = trControl,
                              family = 'binomial', 
                              metric = "Accuracy",
                              tuneLength= 5)
 
-
 pred.rf <- predict(RF.CV, newdata=test)
 
 
-confusionMatrix(
-  pred.rf,
+cm.rf <- confusionMatrix(
+            pred.rf,
+            test$lead_movement)
+
+
+
+
+
+
+# KNN
+
+set.seed(1)
+KNN.CV <- train(lead_movement ~ ., data = train.gme, 
+                method = 'kknn',
+                trControl = trControl,
+                family = 'binomial', 
+                metric = "Accuracy",
+                tuneLength= 5)
+
+
+pred.knn <- predict(KNN.CV, newdata=test.gme)
+
+
+cm.knn <- confusionMatrix(
+  pred.knn,
   test$lead_movement)
+
 
 
 
@@ -188,8 +350,8 @@ confusionMatrix(
 
 # Extreme Gradient Boosting 
 
-
-XGB.CV <- train(lead_movement ~ ., data = train, 
+set.seed(1)
+XGB.CV <- train(lead_movement ~ ., data = train.gme, 
                 method = 'xgbTree',
                 trControl = trControl,
                 family = 'binomial', 
@@ -200,9 +362,17 @@ XGB.CV <- train(lead_movement ~ ., data = train,
 pred.xgb <- predict(XGB.CV, newdata=test)
 
 
-confusionMatrix(
-  pred.xgb,
-  test$lead_movement)
+cm.xgb <- confusionMatrix(
+           pred.xgb,
+           test$lead_movement)
+
+
+
+
+
+
+
+
 
 
 
@@ -210,10 +380,25 @@ confusionMatrix(
 # Comparing the models
 
 resamps <- resamples(list(log = logit.CV,
+                          step.glm = STEP.GLM.CV,
                           rf = RF.CV,
                           svm = SVM.CV,
-                          rk.svm = RK.SVM.CV,
+                          svm.rk = RK.SVM.CV,
+                          svm.poly = SVM.POLY.CV,
+                          knn = KNN.CV,
                           xgb = XGB.CV))
+
+
+
+resamps <- resamples(list(log = logit.CV,
+                          step.glm = STEP.GLM.CV,
+                          rf = RF.CV,
+                          svm = SVM.CV,
+                          svm.rk = RK.SVM.CV,
+                          svm.poly = SVM.POLY.CV,
+                          knn = KNN.CV,
+                          xgb = XGB.CV))
+
 
 
 # Table
@@ -236,9 +421,7 @@ dotplot(resamps, metric = "Accuracy")
 
 
 
-
-
-
-
+cm.matrix <- rbind(cm.log$overall[1],
+                   cm.
 
 

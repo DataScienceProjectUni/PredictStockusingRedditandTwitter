@@ -7,6 +7,7 @@ library("DataExplorer")
 library("caret")
 library("dplyr")
 library("lattice")
+library("corrplot")
 
 # Load data
 gme <- read.delim("~/R-data/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/GME_merged.csv", sep="," )
@@ -19,7 +20,7 @@ tsla <- read.delim("~/R-data/Data Science Project/PredictStockusingRedditandTwit
 
 
 # Explore data
-str(gme)
+head(gme)
 
 # Removing the first columns with
 gme <- gme[,-c(1:7)]
@@ -64,6 +65,11 @@ summary(gme1)
 # i.e. negative percentage tend to be higher for a 0 in lead_movement 
 # and positive tend to be higher for a 1 in lead_movement
 
+
+# Corrplot to check
+
+M <- cor(gme)
+corrplot(M, method = "number", "upper")
 
 
 # Base naive predictions
@@ -237,6 +243,8 @@ test.bb <- bb[36:47,]
 test.pltr <- pltr[36:47,]
 
 
+
+
 # setting up a time series CV 
 
 trControl <- trainControl(method = 'timeslice',
@@ -244,6 +252,21 @@ trControl <- trainControl(method = 'timeslice',
                           horizon = 6,
                           fixedWindow = FALSE
                           )
+
+
+
+
+gme.sig <- gme[4:47,]
+set.seed(2)
+gme.sig <- train(lead_movement ~ ., data = gme.sig,
+                   method = 'glmnet',
+                   trControl = trControl,
+                   family = 'binomial', 
+                   metric = "Accuracy",
+                   tuneLength = 5)
+
+varImp(gme.sig)
+
 
 
 

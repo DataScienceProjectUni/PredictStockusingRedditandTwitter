@@ -48,10 +48,18 @@ summary(gme)
 
 
 plot_histogram(gme)
+plot_histogram(amc)
+plot_histogram(bb)
+plot_histogram(pltr)
+plot_histogram(tsla)
 # Generally our numeric data looks normally distributed
 
 
-plot_bar(gme$lead_movement)
+plot_bar(gme$lead_movement, title = "GME")
+plot_bar(amc$lead_movement, title = "AMC")
+plot_bar(bb$lead_movement, title = "BB")
+plot_bar(pltr$lead_movement, title = "PLTR")
+plot_bar(tsla$lead_movement, title = "TSLA")
 # Fairly equal distribution of 1 and 0 of the lead movement, which is what we are trying to predict
 
 
@@ -60,6 +68,32 @@ gme1 <- subset(gme, lead_movement==1)
 
 summary(gme0)
 summary(gme1)
+-------------------------------------
+amc0 <- subset(amc, lead_movement==0)
+amc1 <- subset(amc, lead_movement==1)
+
+summary(amc0)
+summary(amc1)
+-------------------------------------
+bb0 <- subset(bb, lead_movement==0)
+bb1 <- subset(bb, lead_movement==1)
+
+summary(bb0)
+summary(bb1)
+
+-------------------------------------
+pltr0 <- subset(pltr, lead_movement==0)
+pltr1 <- subset(pltr, lead_movement==1)
+
+summary(pltr0)
+summary(pltr1)
+
+-------------------------------------
+tsla0 <- subset(tsla, lead_movement==0)
+tsla1 <- subset(tsla, lead_movement==1)
+
+summary(tsla0)
+summary(tsla1)
 
 # Looking at the 2 factors individually, then it can be observed that there is in fact differences in the sentiments between 1 and 0 
 # i.e. negative percentage tend to be higher for a 0 in lead_movement 
@@ -68,8 +102,20 @@ summary(gme1)
 
 # Corrplot to check
 
-M <- cor(gme)
-corrplot(M, method = "number", "upper")
+M1 <- cor(gme)
+corrplot(M1, method = "number", "upper", title = "GME")
+
+M2 <- cor(amc)
+corrplot(M2, method = "number", "upper", title = "AMC")
+
+M3 <- cor(bb)
+corrplot(M3, method = "number", "upper", title = "BB")
+
+M4 <- cor(pltr)
+corrplot(M4, method = "number", "upper", title = "PLTR")
+
+M5 <- cor(tsla)
+corrplot(M5, method = "number", "upper", title = "TSLA")
 
 
 # Base naive predictions

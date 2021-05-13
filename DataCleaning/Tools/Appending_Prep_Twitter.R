@@ -77,7 +77,7 @@ tsla$created_utc <- as.POSIXct(tsla$created_utc)
 
 
 
-# Looping over the data frames to rename col 1 to creates_cet
+# Looping over the data frames to rename col 1 to created_utc
 ticker <- c('gme', 'amc', 'pltr', 'bb', 'tsla', 'apha', 'tlry', 'nio', 'rkt', 'aapl')
 
 

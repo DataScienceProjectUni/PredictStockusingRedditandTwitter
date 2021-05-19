@@ -12,7 +12,7 @@ library(tidyquant)
 
 We first assign the api key.
 ```{r}
-tiingo_api_key('f2a7cc9f497139d18f1056bf911eac4b763ff621')
+tiingo_api_key('TIINGO_API_KEY')
 ```
 
 We then use the API key to fetch the stock data from the desired stocks based on their ticker symbol. We use the tq_get function from the tidyquant library. We specify that we want daily data. We then filter the output for the dates we are interested in.

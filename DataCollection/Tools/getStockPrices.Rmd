@@ -1,5 +1,5 @@
 ---
-title: "getStockPricesFinalReport"
+title: "getStockPrices"
 author: "Rune Rathmann"
 date: "8/5/2021"
 output: word_document

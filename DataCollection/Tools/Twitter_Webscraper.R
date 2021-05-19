@@ -11,11 +11,11 @@ library(rtweet)
 library(lubridate)
 
 #Keys and Tokens from Twitter
-API_Key <- "OonvgKZHTrlekJstRIMVa7Sov"
-API_Secret_Key <- "HeIlK8HlSI98F218za8uvwNmpIBOqQYRsn9likEcI0DuAI9vJo"
-Access_Token <- "1137671692711596038-QwlMYtruJj7fpLpIxxawuFZ9yDF7jW"
-Access_Token_Secret <- "u5oh6tbzFObRd7LtDlEAWlDuvO46U3x4CTxzGvfcgG1oE"
-Bearer_Token <- "AAAAAAAAAAAAAAAAAAAAANT0MgEAAAAAFoNqAZU8NEhJj1nbKAU2g44dbcw%3DybuSNOy4XTJXih4PKeetVsBDu5ZmszqihoRITlr4f3dhnM9vGg"
+API_Key <- Confidential
+API_Secret_Key <- Confidential
+Access_Token <- Confidential
+Access_Token_Secret <- Confidential
+Bearer_Token <- Confidential
 
 options(httr_oauth_cache=TRUE)
 setup_twitter_oauth(API_Key, API_Secret_Key, Access_Token, Access_Token_Secret)

@@ -1,0 +1,118 @@
+---
+title: "AMC_simulation"
+author: "Rune Rathmann"
+date: "22/5/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Prediction Model
+## Train Model
+```{r}
+library(caret)
+amc <- read.csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/AMC_merged.csv")
+
+amc <- amc[,-c(1:7)]
+amc <- amc[-48,]
+
+## make lead_movement factor (for the SVM model)
+amc$lead_movement <- as.factor(amc$lead_movement)
+
+## ad lagged variables
+# lag 1 amc
+amc$pos_lag1 <- dplyr::lag(amc[ , 1], 1L)
+amc$neg_lag1 <- dplyr::lag(amc[ , 2], 1L)
+amc$lit_lag1 <- dplyr::lag(amc[ , 3], 1L)
+amc$sup_lag1 <- dplyr::lag(amc[ , 4], 1L)
+amc$con_lag1 <- dplyr::lag(amc[ , 5], 1L)
+amc$unc_lag1 <- dplyr::lag(amc[ , 6], 1L)
+
+# lag 2 amc
+amc$pos_lag2 <- dplyr::lag(amc[ , 1], 2L)
+amc$neg_lag2 <- dplyr::lag(amc[ , 2], 2L)
+amc$lit_lag2 <- dplyr::lag(amc[ , 3], 2L)
+amc$sup_lag2 <- dplyr::lag(amc[ , 4], 2L)
+amc$con_lag2 <- dplyr::lag(amc[ , 5], 2L)
+amc$unc_lag2 <- dplyr::lag(amc[ , 6], 2L)
+
+# lag 3 amc
+amc$pos_lag3 <- dplyr::lag(amc[ , 1], 3L)
+amc$neg_lag3 <- dplyr::lag(amc[ , 2], 3L)
+amc$lit_lag3 <- dplyr::lag(amc[ , 3], 3L)
+amc$sup_lag3 <- dplyr::lag(amc[ , 4], 3L)
+amc$con_lag3 <- dplyr::lag(amc[ , 5], 3L)
+amc$unc_lag3 <- dplyr::lag(amc[ , 6], 3L)
+
+
+train.amc <- amc[4:35,]
+test.amc <- amc[36:47,]
+
+trControl <- trainControl(method = 'timeslice',
+                          initialWindow = 8,
+                          horizon = 6,
+                          fixedWindow = FALSE
+)
+
+set.seed(2)
+POLY.SVM.amc <- train(lead_movement ~ ., data = train.amc, 
+                      method = 'svmPoly',
+                      trControl = trControl,
+                      family = 'binomial', 
+                      metric = "Accuracy",
+                      tuneLength= 5)
+
+```
+
+## Make Predictions
+```{r}
+  # Making predictions on test data with the best model
+  pred <- predict(POLY.SVM.amc, newdata=test.amc)
+
+cm <- confusionMatrix(
+  pred, 
+  test.amc$lead_movement)
+```
+
+
+## create prediction result table
+```{r}
+pred.amc <- cbind(test.amc$lead_movement,pred)-1
+```
+
+## Get Absolute Prices
+```{r}
+amc.prices <- read.csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/AMC_merged.csv")
+
+amc.prices <- amc.prices[-48,c(1,2,5,14)]
+amc.prices <- amc.prices[36:47,]
+
+sim <- cbind(amc.prices,pred)
+```
+
+# Prediction Simulation
+```{r}
+library(dplyr)
+
+sim$Acc.Volume = 0  
+sim <- sim %>%
+mutate(Purchase = ifelse(pred == 1,close*100,0)) %>%
+mutate(Volume = ifelse(pred == 1,100,0))
+
+sim$Acc.Volume <- with(sim,ave(Volume,cumsum(Volume==0),FUN=cumsum))
+
+sim <- sim %>%    
+mutate(Sell = ifelse(pred == 1,0,lag(Acc.Volume, n = 1L)*close)) %>%
+mutate(Profit = Sell-Purchase)
+
+rest_sell <- sim[length(sim$close),"Acc.Volume"]*sim[length(sim$close),3]
+
+profit <- sum(sim$Profit[2:length(sim$Profit)])+rest_sell
+
+as.matrix(sim$Profit)
+
+```
+

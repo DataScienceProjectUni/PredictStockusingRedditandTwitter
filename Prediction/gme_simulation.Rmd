@@ -1,0 +1,117 @@
+---
+title: "GME_sim"
+author: "Rune Rathmann"
+date: "22/5/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+# Prediction Model
+## Train Model
+```{r}
+library(caret)
+gme <- read.csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/gme_merged.csv")
+
+gme <- gme[,-c(1:7)]
+gme <- gme[-48,]
+
+## make lead_movement factor (for the SVM model)
+gme$lead_movement <- as.factor(gme$lead_movement)
+
+## ad lagged variables
+# lag 1 gme
+gme$pos_lag1 <- dplyr::lag(gme[ , 1], 1L)
+gme$neg_lag1 <- dplyr::lag(gme[ , 2], 1L)
+gme$lit_lag1 <- dplyr::lag(gme[ , 3], 1L)
+gme$sup_lag1 <- dplyr::lag(gme[ , 4], 1L)
+gme$con_lag1 <- dplyr::lag(gme[ , 5], 1L)
+gme$unc_lag1 <- dplyr::lag(gme[ , 6], 1L)
+
+# lag 2 gme
+gme$pos_lag2 <- dplyr::lag(gme[ , 1], 2L)
+gme$neg_lag2 <- dplyr::lag(gme[ , 2], 2L)
+gme$lit_lag2 <- dplyr::lag(gme[ , 3], 2L)
+gme$sup_lag2 <- dplyr::lag(gme[ , 4], 2L)
+gme$con_lag2 <- dplyr::lag(gme[ , 5], 2L)
+gme$unc_lag2 <- dplyr::lag(gme[ , 6], 2L)
+
+# lag 3 gme
+gme$pos_lag3 <- dplyr::lag(gme[ , 1], 3L)
+gme$neg_lag3 <- dplyr::lag(gme[ , 2], 3L)
+gme$lit_lag3 <- dplyr::lag(gme[ , 3], 3L)
+gme$sup_lag3 <- dplyr::lag(gme[ , 4], 3L)
+gme$con_lag3 <- dplyr::lag(gme[ , 5], 3L)
+gme$unc_lag3 <- dplyr::lag(gme[ , 6], 3L)
+
+
+train.gme <- gme[4:35,]
+test.gme <- gme[36:47,]
+
+trControl <- trainControl(method = 'timeslice',
+                          initialWindow = 8,
+                          horizon = 6,
+                          fixedWindow = FALSE
+)
+
+set.seed(2)
+POLY.SVM.gme <- train(lead_movement ~ ., data = train.gme, 
+                      method = 'svmPoly',
+                      trControl = trControl,
+                      family = 'binomial', 
+                      metric = "Accuracy",
+                      tuneLength= 5)
+
+```
+
+## Make Predictions
+```{r}
+  # Making predictions on test data with the best model
+  pred <- predict(POLY.SVM.gme, newdata=test.gme)
+
+cm <- confusionMatrix(
+  pred, 
+  test.gme$lead_movement)
+```
+
+
+## create prediction result table
+```{r}
+pred.gme <- cbind(test.gme$lead_movement,pred)-1
+```
+
+## Get Absolute Prices
+```{r}
+gme.prices <- read.csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/gme_merged.csv")
+
+gme.prices <- gme.prices[-48,c(1,2,5,14)]
+gme.prices <- gme.prices[36:47,]
+
+sim <- cbind(gme.prices,pred)
+```
+
+# Prediction Simulation
+```{r}
+library(dplyr)
+
+sim$Acc.Volume = 0  
+sim <- sim %>%
+mutate(Purchase = ifelse(pred == 1,open*100,0)) %>%
+mutate(Volume = ifelse(pred == 1,100,0))
+
+sim$Acc.Volume <- with(sim,ave(Volume,cumsum(Volume==0),FUN=cumsum))
+
+sim <- sim %>%    
+mutate(Sell = ifelse(pred == 1,0,lag(Acc.Volume, n = 1L)*open)) %>%
+mutate(Profit = Sell-Purchase)
+
+rest_sell <- sim[length(sim$open),"Acc.Volume"]*sim[length(sim$open),3]
+
+profit <- sum(sim$Profit[2:length(sim$Profit)])+rest_sell
+
+```

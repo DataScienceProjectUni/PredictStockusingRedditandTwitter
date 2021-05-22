@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Train Model
 ```{r}
 library(caret)
-bb <- read.csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/bb_merged.csv")
+bb <- read.csv("~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/BB_merged.csv")
 
 bb <- bb[,-c(1:7)]
 bb <- bb[-48,]
@@ -86,7 +86,8 @@ pred.bb <- cbind(test.bb$lead_movement,pred)-1
 
 ## Get Absolute Prices
 ```{r}
-bb.prices <- read.csv("C:/Users/runer/OneDrive/Dokumenter/MSc/8th Semester/Data Science Project/WSB Project/PredictStockusingRedditandTwitter/PreProcessedData/bb_merged.csv")
+bb.prices <- read.csv("~/Desktop/Uni/BI/2. semester/Data Science Project/PredictStockusingRedditandTwitter/PreProcessedData/BB_merged.csv")
+bb.prices$created_utc <-  as.POSIXct(bb.prices$created_utc)
 
 bb.prices <- bb.prices[-48,c(1,2,5,14)]
 bb.prices <- bb.prices[36:47,]
@@ -100,6 +101,7 @@ library(dplyr)
 
 sim$Acc.Volume = 0  
 sim <- sim %>%
+mutate(DateTime = as.POSIXct(created_utc)) %>% 
 mutate(Purchase = ifelse(pred == 1,open*100,0)) %>%
 mutate(Volume = ifelse(pred == 1,100,0))
 
@@ -116,4 +118,12 @@ profit <- sum(sim$Profit[2:length(sim$Profit)])+rest_sell
 as.matrix(sim$Profit)
 
 ```
+
+```{r}
+ggplot(data=sim, aes(x=created_utc, y=close, group=1)) +
+  geom_line(color="red")+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 45, hjust=1))
+```
+
 

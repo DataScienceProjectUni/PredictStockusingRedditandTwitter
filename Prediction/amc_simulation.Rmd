@@ -114,5 +114,6 @@ profit <- sum(sim$Profit[2:length(sim$Profit)])+rest_sell
 
 as.matrix(sim$Profit)
 
+View(sim)
 ```
 

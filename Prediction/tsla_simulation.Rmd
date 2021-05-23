@@ -102,18 +102,17 @@ library(dplyr)
 
 sim$Acc.Volume = 0  
 sim <- sim %>%
-mutate(Purchase = ifelse(pred == 1,open*100,0)) %>%
+mutate(Purchase = ifelse(pred == 1,close*100,0)) %>%
 mutate(Volume = ifelse(pred == 1,100,0))
 
 sim$Acc.Volume <- with(sim,ave(Volume,cumsum(Volume==0),FUN=cumsum))
 
 sim <- sim %>%    
-mutate(Sell = ifelse(pred == 1,0,lag(Acc.Volume, n = 1L)*open)) %>%
+mutate(Sell = ifelse(pred == 1,0,lag(Acc.Volume, n = 1L)*close)) %>%
 mutate(Profit = Sell-Purchase)
 
-rest_sell <- sim[length(sim$open),"Acc.Volume"]*sim[length(sim$open),3]
+rest_sell <- sim[length(sim$close),"Acc.Volume"]*sim[length(sim$close),3]
 
 profit <- sum(sim$Profit[2:length(sim$Profit)])+rest_sell
 
-as.matrix(sim$Profit)
 ```

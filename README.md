@@ -1,4 +1,4 @@
-# Relationship between SoMe and Stocks (Sentiment analysis)
+# Stock Movement Prediction using Reddit and Twitter Sentiments
 
 ## Introduction
 Predicting stock prices has been an important and tested problem within the financial world for decades and its frontier has, with time, expanded into the field of data science and even more so with the rise of electronic trading (Bodie et al., 2017, p.66-68).   
